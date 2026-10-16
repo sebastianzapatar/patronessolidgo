@@ -1,0 +1,179 @@
+
+</div> <!-- /slides-wrapper -->
+
+<!-- ============================================================
+     NAVIGATION BAR
+     ============================================================ -->
+<div class="nav-bar">
+    <div style="display:flex; align-items:center; gap:10px;">
+        <button class="nav-btn menu-btn" id="menuBtn" onclick="toggleToc()" title="Índice (tecla M)">☰ Índice</button>
+        <button class="nav-btn" id="prevBtn" onclick="goToSlide(currentSlide - 1)" title="Anterior (←)">←</button>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill"></div>
+        </div>
+        <span class="slide-counter" id="slideCounter">1 / 1</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+        <span class="section-label" id="sectionLabel">Introducción</span>
+        <button class="nav-btn" id="nextBtn" onclick="goToSlide(currentSlide + 1)" title="Siguiente (→)">→</button>
+    </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT: NAVEGACIÓN, ÍNDICE Y RESALTADO DE SINTAXIS GO
+     ============================================================ -->
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const TOTAL_SLIDES = slides.length;
+let currentSlide = 0;
+
+// Numerar automáticamente cada slide
+slides.forEach((slide, i) => {
+    const badge = slide.querySelector('.slide-number-badge');
+    if (badge) {
+        badge.textContent = String(i + 1).padStart(2, '0') + ' / ' + String(TOTAL_SLIDES).padStart(2, '0');
+    }
+});
+
+// Construir índice lateral a partir de data-toc y data-toc-group
+const tocPanel = document.getElementById('tocPanel');
+(function buildToc() {
+    let html = '<h3>📑 Índice de la clase</h3>';
+    let lastGroup = '';
+    slides.forEach((slide, i) => {
+        const title = slide.dataset.toc;
+        if (!title) return;
+        const group = slide.dataset.tocGroup || '';
+        if (group && group !== lastGroup) {
+            html += `<div class="toc-group">${group}</div>`;
+            lastGroup = group;
+        }
+        html += `<a href="#${slide.id || ('s-' + i)}" data-slide="${i}">${String(i + 1).padStart(2, '0')} · ${title}</a>`;
+    });
+    tocPanel.innerHTML = html;
+    tocPanel.querySelectorAll('a[data-slide]').forEach(a => {
+        a.addEventListener('click', (e) => {
+            e.preventDefault();
+            goToSlide( Number(a.dataset.slide) );
+            tocPanel.classList.remove('open');
+        });
+    });
+})();
+
+function toggleToc() {
+    tocPanel.classList.toggle('open');
+}
+
+function goToSlide(n) {
+    if (n < 0 || n >= TOTAL_SLIDES) return;
+    slides[currentSlide].classList.remove('active');
+    currentSlide = n;
+    slides[currentSlide].classList.add('active');
+    slides[currentSlide].scrollTop = 0;
+
+    document.getElementById('slidesWrapper').style.transform = `translateX(-${currentSlide * 100}vw)`;
+    document.getElementById('progressFill').style.width = `${((currentSlide + 1) / TOTAL_SLIDES) * 100}%`;
+    document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${TOTAL_SLIDES}`;
+    document.getElementById('sectionLabel').textContent = slides[currentSlide].dataset.section || '';
+    document.getElementById('prevBtn').disabled = (currentSlide === 0);
+    document.getElementById('nextBtn').disabled = (currentSlide === TOTAL_SLIDES - 1);
+
+    // Marcar entrada actual en el índice
+    let activeTocIdx = 0;
+    for (let i = currentSlide; i >= 0; i--) {
+        if (slides[i].dataset.toc) { activeTocIdx = i; break; }
+    }
+    tocPanel.querySelectorAll('a[data-slide]').forEach(a => {
+        a.classList.toggle('current', Number(a.dataset.slide) === activeTocIdx);
+    });
+
+    if (slides[currentSlide].id) {
+        history.replaceState(null, '', '#' + slides[currentSlide].id);
+    }
+}
+
+// Saltos directos mediante data-goto="id-del-slide"
+document.querySelectorAll('[data-goto]').forEach(el => {
+    el.addEventListener('click', () => {
+        const target = document.getElementById(el.dataset.goto);
+        if (target) {
+            const idx = slides.indexOf(target);
+            if (idx !== -1) goToSlide(idx);
+        }
+    });
+});
+
+// Teclado: ← → Espacio Inicio Fin M Esc
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault(); goToSlide(currentSlide + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault(); goToSlide(currentSlide - 1);
+    } else if (e.key === 'Home') {
+        e.preventDefault(); goToSlide(0);
+    } else if (e.key === 'End') {
+        e.preventDefault(); goToSlide(TOTAL_SLIDES - 1);
+    } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault(); toggleToc();
+    } else if (e.key === 'Escape') {
+        tocPanel.classList.remove('open');
+    }
+});
+
+// Gestos táctiles (swipe horizontal)
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        goToSlide(currentSlide + (dx < 0 ? 1 : -1));
+    }
+}, { passive: true });
+
+// ============================================================
+// RESALTADOR LIGERO DE SINTAXIS GO (sobre bloques <pre data-lang="go">)
+// ============================================================
+const GO_KW = new Set([
+    'package','import','func','type','struct','interface','return','var','const',
+    'if','else','for','range','switch','case','default','break','continue',
+    'go','defer','chan','select','map','fallthrough'
+]);
+const GO_TYPES = new Set([
+    'string','int','int64','float64','bool','byte','rune','error','any','void','nil','true','false'
+]);
+
+function highlightGo(src) {
+    // Tokeniza comentarios, strings, números e identificadores sobre texto ya escapado en HTML.
+    const tokenRe = /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:\\.|[^"\\])*"|`[^`]*`|'(?:\\.|[^'\\])*')|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)\b(\s*\()?/g;
+    return src.replace(tokenRe, (full, cm, str, num, id, callParen) => {
+        if (cm !== undefined)  return `<span class="cm">${cm}</span>`;
+        if (str !== undefined) return `<span class="st">${str}</span>`;
+        if (num !== undefined) return `<span class="nb">${num}</span>`;
+        if (id !== undefined) {
+            if (GO_KW.has(id))    return `<span class="kw">${id}</span>` + (callParen || '');
+            if (GO_TYPES.has(id)) return `<span class="tp">${id}</span>` + (callParen || '');
+            if (callParen)        return `<span class="fn">${id}</span>${callParen}`;
+            if (/^[A-Z]/.test(id)) return `<span class="tp">${id}</span>`;
+        }
+        return full;
+    });
+}
+
+document.querySelectorAll('.code-block[data-lang="go"]').forEach(block => {
+    block.innerHTML = highlightGo(block.innerHTML.trim());
+});
+
+// Ir al hash inicial si existe
+const initialHash = location.hash.slice(1);
+const initialIdx = initialHash ? slides.findIndex(s => s.id === initialHash) : 0;
+goToSlide(initialIdx >= 0 ? initialIdx : 0);
+</script>
+</body>
+</html>

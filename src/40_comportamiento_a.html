@@ -1,0 +1,1290 @@
+<!-- =====================================================================
+     PATRÓN 1: CHAIN OF RESPONSIBILITY (Comportamiento)
+     ===================================================================== -->
+<div class="slide" id="p-chain-of-responsibility" data-toc="Chain of Responsibility" data-toc-group="Comportamiento" data-section="Comportamiento · Chain of Responsibility">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">1 / 3 · Teoría</span>
+    </div>
+    <h2 class="slide-title">Chain of Responsibility</h2>
+    <p class="slide-subtitle">También llamado: Cadena de responsabilidad, CoR, Chain of Command</p>
+
+    <div class="intent-box">
+      <span class="label">🎯 Propósito</span>
+      <p>Permite enviar solicitudes a lo largo de una cadena de manejadores potenciales. Al recibir una petición, cada eslabón decide si la procesa por su cuenta, si la bloquea o si la delega al siguiente manejador de la fila.</p>
+    </div>
+
+    <div class="two-cols">
+      <div class="glass-card problem-card">
+        <h3>😟 Problema</h3>
+        <p>Imagina un sistema de compras en línea que debe aplicar controles secuenciales antes de registrar un pedido: primero autenticar al usuario, luego verificar permisos de rol, sanear los datos de entrada, limitar intentos repetidos por IP (fuerza bruta) y consultar si ya existe respuesta en caché.</p>
+        <p>Si programas todas estas validaciones dentro de una sola función gigante llena de condicionales anidados, el código se vuelve rígido, frágil ante cambios y casi imposible de reutilizar parcialmente en otros módulos que solo requieran un subconjunto de controles.</p>
+      </div>
+      <div class="glass-card solution-card">
+        <h3>💡 Solución</h3>
+        <p>Extrae cada control en un objeto autónomo llamado <em>manejador</em> (handler) que implemente una interfaz común con un método de procesamiento y una referencia al siguiente eslabón.</p>
+        <p>Las peticiones recorren la cadena eslabón por eslabón: cada manejador ejecuta su verificación y decide si <strong>detiene el flujo</strong> (por ejemplo, cuando falla la autenticación o ya resolvió el evento GUI) o si <strong>pasa la solicitud</strong> al siguiente manejador, desacoplando al emisor de los receptores concretos.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="icon">☎️</div>
+      <div>
+        <h3>Analogía en el mundo real</h3>
+        <p>Cuando llamas al soporte técnico por un driver incompatible en Linux, tu llamada atraviesa una cadena de atención: primero responde un contestador automático con opciones pregrabadas; como ninguna aplica, te transfiere a un operador de primer nivel que lee respuestas estándar del manual; al no poder resolverlo, finalmente escala la llamada a un ingeniero especialista en el sótano de servidores, quien da con la solución exacta y cierra el caso.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Chain of Responsibility">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">2 / 3 · Estructura</span>
+    </div>
+    <h2 class="slide-title">Chain of Responsibility — Estructura</h2>
+    <p class="slide-subtitle">Arquitectura en eslabones, cuándo aplicarlo y evaluación del diseño</p>
+
+    <div class="two-cols">
+      <div>
+        <pre class="uml">┌──────────────┐        ┌───────────────────────────────────┐
+│ 4. Cliente   │───────▶│      &lt;&lt;interface&gt;&gt;                │
+└──────────────┘        │     1. Manejador                  │
+                        ├───────────────────────────────────┤
+                        │ + EstablecerSiguiente(m)          │
+                        │ + Manejar(solicitud)              │
+                        └─────────────────△─────────────────┘
+                                          │ implementa
+                        ┌─────────────────┴─────────────────┐
+                        │        2. ManejadorBase           │◇───┐
+                        ├───────────────────────────────────┤    │ siguiente
+                        │ - siguiente: Manejador            │◀───┘
+                        ├───────────────────────────────────┤
+                        │ + EstablecerSiguiente(m)          │
+                        │ + PasarAlSiguiente(solicitud)     │
+                        └─────────────────△─────────────────┘
+                                          │ embebe
+                        ┌─────────────────┴─────────────────┐
+                        │     3. ManejadoresConcretos       │
+                        ├───────────────────────────────────┤
+                        │ + Manejar(solicitud):             │
+                        │   si no cumple -&gt; cortar          │
+                        │   si cumple    -&gt; PasarAlSiguiente│
+                        └───────────────────────────────────┘</pre>
+        <ol class="participants mt-1">
+          <li><strong>Manejador (Interfaz):</strong> declara el contrato común para procesar peticiones y enlazar el siguiente eslabón.</li>
+          <li><strong>Manejador Base:</strong> estructura opcional que almacena la referencia al siguiente manejador e implementa el reenvío por defecto para ahorrar código repetitivo.</li>
+          <li><strong>Manejadores Concretos:</strong> contienen la regla de negocio real; deciden si procesan/detienen la solicitud o la delegan hacia adelante.</li>
+          <li><strong>Cliente:</strong> ensambla la cadena estática o dinámicamente y dispara la petición hacia el primer eslabón (o cualquiera de la cadena).</li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🧭 Aplicabilidad y 🛠️ Cómo implementarlo</h3>
+          <ul>
+            <li><strong>Cuándo usarlo:</strong> cuando debas procesar distintas solicitudes sin conocer de antemano qué eslabón las atenderá, cuando sea obligatorio ejecutar filtros en un orden estricto, o cuando la tubería de manejadores deba reconfigurarse en tiempo de ejecución.</li>
+            <li><strong>Paso 1:</strong> Define la interfaz <code>Manejador</code> y encapsula los datos de entrada en un struct <code>Solicitud</code>.</li>
+            <li><strong>Paso 2:</strong> Crea un <code>ManejadorBase</code> con el campo <code>siguiente</code> y un método auxiliar para delegar si <code>siguiente != nil</code>.</li>
+            <li><strong>Paso 3:</strong> Implementa cada manejador concreto decidiendo si corta la ejecución o invoca al siguiente, y conecta los eslabones desde el cliente.</li>
+          </ul>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>Pros</h3>
+            <ul>
+              <li>Control total sobre el orden de ejecución de las validaciones.</li>
+              <li>Cumple <strong>SRP</strong>: desacopla quien inicia la petición de quien la valida o procesa.</li>
+              <li>Cumple <strong>OCP</strong>: puedes insertar nuevos filtros sin modificar los existentes.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>Contras</h3>
+            <ul>
+              <li>Algunas solicitudes pueden recorrer toda la cadena y terminar sin que ningún eslabón las procese.</li>
+              <li>Rastrear el flujo en cadenas muy largas puede requerir depuración cuidadosa.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass-card mt-1">
+          <h3>🔗 Relación con otros patrones</h3>
+          <p>Suele combinarse con <strong>Composite</strong> (los eventos suben desde una hoja hacia sus contenedores padres), con <strong>Command</strong> (representando cada solicitud como comando), y se parece estructuralmente a <strong>Decorator</strong>, con la diferencia clave de que cualquier eslabón de CoR puede cortar el flujo libremente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Chain of Responsibility">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">3 / 3 · Go</span>
+    </div>
+    <h2 class="slide-title">Chain of Responsibility en Go</h2>
+    <p class="slide-subtitle">Pipeline de seguridad y validación de pedidos con composición de structs</p>
+
+    <div class="two-cols-wide">
+      <div>
+        <pre class="code-block tall" data-lang="go" data-label="chainofresponsibility/main.go">package main
+
+import "fmt"
+
+// Solicitud contiene los datos que viajan a lo largo de la cadena.
+type Solicitud struct {
+	Usuario     string
+	Autenticado bool
+	Intentos    int
+	Datos       string
+}
+
+// 1. Manejador (interfaz común a todos los eslabones)
+type Manejador interface {
+	EstablecerSiguiente(m Manejador) Manejador
+	Manejar(s *Solicitud)
+}
+
+// 2. ManejadorBase (evita duplicar el enlace al siguiente eslabón)
+type ManejadorBase struct {
+	siguiente Manejador
+}
+
+func (b *ManejadorBase) EstablecerSiguiente(m Manejador) Manejador {
+	b.siguiente = m
+	return m
+}
+
+func (b *ManejadorBase) PasarAlSiguiente(s *Solicitud) {
+	if b.siguiente != nil {
+		b.siguiente.Manejar(s)
+	}
+}
+
+// 3a. Manejador Concreto: protege contra fuerza bruta
+type FiltroFuerzaBruta struct{ ManejadorBase }
+
+func (f *FiltroFuerzaBruta) Manejar(s *Solicitud) {
+	if s.Intentos &gt;= 3 {
+		fmt.Printf("  [FuerzaBruta] ✘ IP bloqueada para %q (%d intentos fallidos)\n", s.Usuario, s.Intentos)
+		return // Corta la cadena
+	}
+	fmt.Println("  [FuerzaBruta] ✔ Intentos dentro del límite")
+	f.PasarAlSiguiente(s)
+}
+
+// 3b. Manejador Concreto: verifica credenciales
+type FiltroAutenticacion struct{ ManejadorBase }
+
+func (a *FiltroAutenticacion) Manejar(s *Solicitud) {
+	if !s.Autenticado {
+		fmt.Printf("  [Autenticación] ✘ Acceso denegado a %q: sesión no iniciada\n", s.Usuario)
+		return // Corta la cadena
+	}
+	fmt.Printf("  [Autenticación] ✔ Usuario %q autenticado\n", s.Usuario)
+	a.PasarAlSiguiente(s)
+}
+
+// 3c. Manejador Concreto: valida y sanea el payload
+type FiltroValidacion struct{ ManejadorBase }
+
+func (v *FiltroValidacion) Manejar(s *Solicitud) {
+	if s.Datos == "" {
+		fmt.Println("  [Validación] ✘ Solicitud rechazada: datos del pedido vacíos")
+		return
+	}
+	fmt.Println("  [Validación] ✔ Datos del pedido saneados")
+	v.PasarAlSiguiente(s)
+}
+
+// 3d. Manejador Concreto final: procesa el pedido
+type ProcesadorPedidos struct{ ManejadorBase }
+
+func (p *ProcesadorPedidos) Manejar(s *Solicitud) {
+	fmt.Printf("  [Pedidos] 🎉 Pedido procesado con éxito para %q: %s\n", s.Usuario, s.Datos)
+}
+
+func main() {
+	// 4. Cliente: ensambla la cadena de responsabilidad
+	fuerzaBruta := &amp;FiltroFuerzaBruta{}
+	autenticacion := &amp;FiltroAutenticacion{}
+	validacion := &amp;FiltroValidacion{}
+	procesador := &amp;ProcesadorPedidos{}
+
+	fuerzaBruta.EstablecerSiguiente(autenticacion).
+		EstablecerSiguiente(validacion).
+		EstablecerSiguiente(procesador)
+
+	casos := []*Solicitud{
+		{Usuario: "atacante", Autenticado: false, Intentos: 5, Datos: "2x Laptop"},
+		{Usuario: "invitado", Autenticado: false, Intentos: 1, Datos: "1x Teclado"},
+		{Usuario: "ana", Autenticado: true, Intentos: 0, Datos: "1x Monitor 4K"},
+	}
+
+	for i, req := range casos {
+		fmt.Printf("Solicitud #%d (usuario=%q):\n", i+1, req.Usuario)
+		fuerzaBruta.Manejar(req)
+	}
+}</pre>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🔍 Explicación paso a paso</h3>
+          <ol>
+            <li><code>ManejadorBase</code> guarda el puntero <code>siguiente</code> y devuelve el manejador recibido en <code>EstablecerSiguiente</code> para permitir encadenamiento fluido.</li>
+            <li>Cada filtro concreto (<code>FiltroFuerzaBruta</code>, <code>FiltroAutenticacion</code>, <code>FiltroValidacion</code>) <strong>embebe</strong> <code>ManejadorBase</code> para heredar la lógica de enlace sin usar herencia de clases.</li>
+            <li>Si una regla falla, el manejador hace <code>return</code> inmediato cortando la cadena; si aprueba, invoca <code>PasarAlSiguiente(s)</code>.</li>
+          </ol>
+        </div>
+
+        <pre class="output-block">Solicitud #1 (usuario="atacante"):
+  [FuerzaBruta] ✘ IP bloqueada para "atacante" (5 intentos fallidos)
+Solicitud #2 (usuario="invitado"):
+  [FuerzaBruta] ✔ Intentos dentro del límite
+  [Autenticación] ✘ Acceso denegado a "invitado": sesión no iniciada
+Solicitud #3 (usuario="ana"):
+  [FuerzaBruta] ✔ Intentos dentro del límite
+  [Autenticación] ✔ Usuario "ana" autenticado
+  [Validación] ✔ Datos del pedido saneados
+  [Pedidos] 🎉 Pedido procesado con éxito para "ana": 1x Monitor 4K</pre>
+
+        <div class="go-tip">
+          <div class="icon">🐹</div>
+          <div>
+            <h3>Nota idiomática en Go</h3>
+            <p>En lugar de clases abstractas, en Go embebemos el struct <code>ManejadorBase</code> en cada manejador concreto. Además, este patrón es la base de los <strong>middlewares HTTP</strong> en la librería estándar (<code>func(http.Handler) http.Handler</code>).</p>
+          </div>
+        </div>
+
+        <a class="source-link" href="https://refactoring.guru/es/design-patterns/chain-of-responsibility" target="_blank">📖 Teoría basada en refactoring.guru — Chain of Responsibility</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     PATRÓN 2: COMMAND (Comportamiento)
+     ===================================================================== -->
+<div class="slide" id="p-command" data-toc="Command" data-toc-group="Comportamiento" data-section="Comportamiento · Command">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">1 / 3 · Teoría</span>
+    </div>
+    <h2 class="slide-title">Command</h2>
+    <p class="slide-subtitle">También llamado: Comando, Orden, Action, Transaction</p>
+
+    <div class="intent-box">
+      <span class="label">🎯 Propósito</span>
+      <p>Convierte una solicitud o acción en un objeto independiente que encapsula toda la información necesaria para ejecutarla (el receptor, el método y sus argumentos), permitiendo parametrizar invocadores, encolar o diferir tareas y soportar operaciones reversibles (deshacer/rehacer).</p>
+    </div>
+
+    <div class="two-cols">
+      <div class="glass-card problem-card">
+        <h3>😟 Problema</h3>
+        <p>Supón que construyes un editor de texto con una barra de herramientas, menús contextuales y atajos de teclado. Si colocas la lógica de negocio (copiar, cortar, pegar) dentro de subclases como <code>BotonCopiar</code>, acoplas la interfaz gráfica directamente a la lógica de negocio.</p>
+        <p>Peor aún: cuando quieras activar la misma operación desde el menú contextual o con <code>Ctrl+C</code>, tendrás que duplicar el código en múltiples componentes o forzar a que los menús dependan de los botones.</p>
+      </div>
+      <div class="glass-card solution-card">
+        <h3>💡 Solución</h3>
+        <p>Separa por completo la capa que inicia la acción (<em>Emisor / Invocador</em>) de la capa que sabe cómo hacer el trabajo (<em>Receptor</em>) extrayendo cada petición en un objeto <strong>Comando</strong> que implementa una interfaz con un método <code>Ejecutar()</code>.</p>
+        <p>El botón, menú o atajo solo guarda una referencia a la interfaz <code>Comando</code> y la dispara sin saber qué receptor actúa por detrás. Además, puedes apilar los comandos ejecutados en un historial para revertir sus efectos cuando el usuario pulse <code>Ctrl+Z</code>.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="icon">🍽️</div>
+      <div>
+        <h3>Analogía en el mundo real</h3>
+        <p>En un restaurante, el camarero (<em>Invocador</em>) toma tu orden y la escribe en una comanda de papel (<em>Comando</em>). Luego coloca ese papel en la fila de la cocina. El chef (<em>Receptor</em>) lee la comanda cuando tiene turno y cocina el plato porque el papel ya contiene todos los detalles necesarios, sin que el cliente tenga que entrar a hablar directamente con el cocinero.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Command">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">2 / 3 · Estructura</span>
+    </div>
+    <h2 class="slide-title">Command — Estructura</h2>
+    <p class="slide-subtitle">Desacoplamiento entre emisores, comandos empaquetados y receptores</p>
+
+    <div class="two-cols">
+      <div>
+        <pre class="uml">┌──────────────────┐       ┌──────────────────────────┐
+│ 1. Emisor / App  │──────▶│      &lt;&lt;interface&gt;&gt;       │
+├──────────────────┤       │       2. Comando         │
+│ - historial      │       ├──────────────────────────┤
+│ + EjecutarCmd(c) │       │ + Ejecutar(): bool       │
+│ + Deshacer()     │       │ + Deshacer()             │
+└──────────────────┘       └────────────△─────────────┘
+                                        │ implementa
+┌──────────────────┐       ┌────────────┴─────────────┐
+│   5. Cliente     │──────▶│   3. ComandoConcreto     │
+└────────┬─────────┘       ├──────────────────────────┤
+         │                 │ - receptor: *Receptor    │
+         │ configura       │ - args / estadoPrevio    │
+         ▼                 ├──────────────────────────┤
+┌──────────────────┐       │ + Ejecutar()             │
+│   4. Receptor    │◀──────│ + Deshacer()             │
+├──────────────────┤llama a└──────────────────────────┘
+│ + Accion(args)   │
+└──────────────────┘</pre>
+        <ol class="participants mt-1">
+          <li><strong>Emisor (Invocador):</strong> inicia la solicitud llamando al comando asignado (sin conocer al receptor) y puede registrar el historial de comandos.</li>
+          <li><strong>Comando (Interfaz):</strong> declara el método único de ejecución (y opcionalmente <code>Deshacer()</code>).</li>
+          <li><strong>Comandos Concretos:</strong> guardan la referencia al receptor, los argumentos de la operación y el respaldo necesario para deshacerla.</li>
+          <li><strong>Receptor:</strong> objeto de dominio que contiene la lógica real de negocio (p. ej. el <code>EditorTexto</code>).</li>
+          <li><strong>Cliente:</strong> instancia el receptor, crea los comandos concretos inyectándoles los parámetros y los asocia al invocador.</li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🧭 Aplicabilidad y 🛠️ Cómo implementarlo</h3>
+          <ul>
+            <li><strong>Cuándo usarlo:</strong> para parametrizar objetos UI con acciones intercambiables, para encolar/programar tareas o enviarlas por red (serializando el comando), y para implementar <strong>deshacer/rehacer</strong> mediante un historial.</li>
+            <li><strong>Paso 1:</strong> Declara la interfaz <code>Comando</code> con su método <code>Ejecutar()</code>.</li>
+            <li><strong>Paso 2:</strong> Crea structs de comando concretos que almacenen al receptor y los argumentos de la llamada.</li>
+            <li><strong>Paso 3:</strong> Haz que el invocador reciba y dispare la interfaz <code>Comando</code> en vez de llamar directamente al receptor.</li>
+          </ul>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>Pros</h3>
+            <ul>
+              <li>Cumple <strong>SRP</strong> y <strong>OCP</strong>: separa quien invoca de quien ejecuta y permite añadir comandos sin romper clases existentes.</li>
+              <li>Facilita implementar <em>undo/redo</em>, ejecución diferida, colas de trabajo y comandos compuestos (macros).</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>Contras</h3>
+            <ul>
+              <li>Introduce una capa adicional de structs e interfaces entre los emisores y los receptores.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass-card mt-1">
+          <h3>🔗 Relación con otros patrones</h3>
+          <p>Se combina con <strong>Memento</strong> para guardar instantáneas antes de ejecutar un comando reversible; a diferencia de <strong>Strategy</strong> (que cambia <em>cómo</em> se hace una tarea), Command convierte <em>cualquier acción</em> y sus argumentos en un objeto ejecutable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Command">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">3 / 3 · Go</span>
+    </div>
+    <h2 class="slide-title">Command en Go</h2>
+    <p class="slide-subtitle">Editor de texto con comandos parametrizados e historial de reversión (Ctrl+Z)</p>
+
+    <div class="two-cols-wide">
+      <div>
+        <pre class="code-block tall" data-lang="go" data-label="command/main.go">package main
+
+import "fmt"
+
+// 2. Comando (interfaz con método de ejecución y reversión)
+type Comando interface {
+	Ejecutar() bool
+	Deshacer()
+	Nombre() string
+}
+
+// 4. Receptor: contiene la lógica de negocio real
+type EditorTexto struct {
+	Texto string
+}
+
+func (e *EditorTexto) Agregar(fragmento string) { e.Texto += fragmento }
+func (e *EditorTexto) BorrarUltimos(n int) {
+	if n &gt; len(e.Texto) {
+		n = len(e.Texto)
+	}
+	e.Texto = e.Texto[:len(e.Texto)-n]
+}
+
+// 3a. Comando Concreto: insertar texto
+type ComandoEscribir struct {
+	editorRespaldo *EditorTexto
+	nuevoTexto     string
+	estadoPrevio   string
+}
+
+func (c *ComandoEscribir) Ejecutar() bool {
+	c.estadoPrevio = c.editorRespaldo.Texto
+	c.editorRespaldo.Agregar(c.nuevoTexto)
+	return true // modifica el estado -&gt; guardar en historial
+}
+
+func (c *ComandoEscribir) Deshacer()      { c.editorRespaldo.Texto = c.estadoPrevio }
+func (c *ComandoEscribir) Nombre() string { return "Escribir(" + c.nuevoTexto + ")" }
+
+// 3b. Comando Concreto: borrar los últimos N caracteres
+type ComandoBorrar struct {
+	editor       *EditorTexto
+	cantidad     int
+	estadoPrevio string
+}
+
+func (c *ComandoBorrar) Ejecutar() bool {
+	c.estadoPrevio = c.editor.Texto
+	c.editor.BorrarUltimos(c.cantidad)
+	return true
+}
+
+func (c *ComandoBorrar) Deshacer()      { c.editor.Texto = c.estadoPrevio }
+func (c *ComandoBorrar) Nombre() string { return fmt.Sprintf("Borrar(%d)", c.cantidad) }
+
+// 1. Emisor / Invocador: dispara comandos y administra la pila de historial
+type Aplicacion struct {
+	historial []Comando
+}
+
+func (a *Aplicacion) EjecutarComando(c Comando) {
+	if c.Ejecutar() {
+		a.historial = append(a.historial, c)
+	}
+	fmt.Printf("  ▶ Ejecutado %-20s →", c.Nombre())
+}
+
+func (a *Aplicacion) DeshacerUltimo() {
+	if len(a.historial) == 0 {
+		return
+	}
+	ultimo := a.historial[len(a.historial)-1]
+	a.historial = a.historial[:len(a.historial)-1]
+	ultimo.Deshacer()
+	fmt.Printf("  ⮌ Deshecho  %-20s →", ultimo.Nombre())
+}
+
+func main() {
+	// 5. Cliente: crea el receptor, los comandos y el invocador
+	editor := &amp;EditorTexto{}
+	app := &amp;Aplicacion{}
+
+	pasos := []Comando{
+		&amp;ComandoEscribir{editorRespaldo: editor, nuevoTexto: "Hola "},
+		&amp;ComandoEscribir{editorRespaldo: editor, nuevoTexto: "Mundo"},
+		&amp;ComandoBorrar{editor: editor, cantidad: 5},
+		&amp;ComandoEscribir{editorRespaldo: editor, nuevoTexto: "Patrones en Go!"},
+	}
+
+	for _, cmd := range pasos {
+		app.EjecutarComando(cmd)
+		fmt.Printf(" %q\n", editor.Texto)
+	}
+
+	fmt.Println("\nRevirtiendo las últimas 2 operaciones (Ctrl+Z):")
+	app.DeshacerUltimo()
+	fmt.Printf(" %q\n", editor.Texto)
+	app.DeshacerUltimo()
+	fmt.Printf(" %q\n", editor.Texto)
+}</pre>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🔍 Explicación paso a paso</h3>
+          <ol>
+            <li><code>EditorTexto</code> actúa como <strong>Receptor</strong>: expone operaciones primitivas sobre el texto sin preocuparse por botones ni historiales.</li>
+            <li><code>ComandoEscribir</code> y <code>ComandoBorrar</code> guardan una copia de seguridad en <code>estadoPrevio</code> justo antes de mutar al receptor.</li>
+            <li><code>Aplicacion</code> apila cada comando ejecutado en un slice <code>[]Comando</code> y desapila en orden LIFO cuando se llama a <code>DeshacerUltimo()</code>.</li>
+          </ol>
+        </div>
+
+        <pre class="output-block">  ▶ Ejecutado Escribir(Hola )      → "Hola "
+  ▶ Ejecutado Escribir(Mundo)      → "Hola Mundo"
+  ▶ Ejecutado Borrar(5)            → "Hola "
+  ▶ Ejecutado Escribir(Patrones en Go!) → "Hola Patrones en Go!"
+
+Revirtiendo las últimas 2 operaciones (Ctrl+Z):
+  ⮌ Deshecho  Escribir(Patrones en Go!) → "Hola "
+  ⮌ Deshecho  Borrar(5)            → "Hola Mundo"</pre>
+
+        <div class="go-tip">
+          <div class="icon">🐹</div>
+          <div>
+            <h3>Nota idiomática en Go</h3>
+            <p>Cuando no necesitas método <code>Deshacer()</code> ni metadatos adicionales, en Go un comando suele representarse directamente como una función clausura (<code>type Comando func() error</code>), capturando al receptor y sus argumentos en el closure.</p>
+          </div>
+        </div>
+
+        <a class="source-link" href="https://refactoring.guru/es/design-patterns/command" target="_blank">📖 Teoría basada en refactoring.guru — Command</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     PATRÓN 3: ITERATOR (Comportamiento)
+     ===================================================================== -->
+<div class="slide" id="p-iterator" data-toc="Iterator" data-toc-group="Comportamiento" data-section="Comportamiento · Iterator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">1 / 3 · Teoría</span>
+    </div>
+    <h2 class="slide-title">Iterator</h2>
+    <p class="slide-subtitle">También llamado: Iterador</p>
+
+    <div class="intent-box">
+      <span class="label">🎯 Propósito</span>
+      <p>Permite recorrer secuencialmente los elementos de una colección compleja sin exponer su representación interna subyacente (ya sea un arreglo, lista enlazada, pila, árbol o grafo).</p>
+    </div>
+
+    <div class="two-cols">
+      <div class="glass-card problem-card">
+        <h3>😟 Problema</h3>
+        <p>Las colecciones almacenan datos en estructuras muy diversas: listas simples, árboles binarios o grafos. Incluso sobre un mismo árbol o grafo, un día necesitas un recorrido en profundidad (DFS), al siguiente en anchura (BFS) y luego un recorrido filtrado.</p>
+        <p>Si metes todos esos algoritmos de recorrido dentro de la propia colección, contaminas su responsabilidad principal (almacenar datos eficientemente). Además, el cliente quedaría acoplado a los detalles internos de cada estructura para poder iterarla.</p>
+      </div>
+      <div class="glass-card solution-card">
+        <h3>💡 Solución</h3>
+        <p>Extrae la lógica y el estado del recorrido hacia un objeto independiente llamado <strong>iterador</strong>. Este objeto lleva la cuenta de la posición actual y de qué elementos faltan por visitar.</p>
+        <p>Como cada iterador mantiene su propio cursor de avance, múltiples iteradores pueden recorrer la misma colección en paralelo sin interferirse. Y como todos implementan la misma interfaz, el cliente puede cambiar de algoritmo de recorrido sin tocar su propio bucle.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="icon">🗺️</div>
+      <div>
+        <h3>Analogía en el mundo real</h3>
+        <p>Imagina que visitas Roma: la ciudad con todos sus monumentos es la <em>Colección</em>. Puedes recorrerla caminando al azar por tu cuenta, usando una app GPS turística en tu teléfono o contratando a un guía local experto en historia. Los tres actúan como <strong>iteradores distintos</strong> sobre la misma colección de atracciones, cada uno con su propio orden y criterio sin cambiar la ciudad.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Iterator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">2 / 3 · Estructura</span>
+    </div>
+    <h2 class="slide-title">Iterator — Estructura</h2>
+    <p class="slide-subtitle">Separación entre el contenedor de datos y el estado del cursor de recorrido</p>
+
+    <div class="two-cols">
+      <div>
+        <pre class="uml">┌────────────────────────────┐         ┌────────────────────────┐
+│       &lt;&lt;interface&gt;&gt;        │         │     &lt;&lt;interface&gt;&gt;      │
+│       3. Colección         │────────▶│      1. Iterador       │
+├────────────────────────────┤  crea   ├────────────────────────┤
+│ + CrearIterador(): Iterador│         │ + HayMas(): bool       │
+└─────────────△──────────────┘         │ + Siguiente(): Elem    │
+              │                        └───────────△────────────┘
+              │ implementa                         │ implementa
+┌─────────────┴──────────────┐         ┌───────────┴────────────┐
+│   4. ColecciónConcreta     │◀────────│  2. IteradorConcreto   │
+├────────────────────────────┤referencia├────────────────────────┤
+│ - datosInternos            │         │ - coleccion            │
+│ + CrearIterador()          │         │ - posicionActual: int  │
+└────────────────────────────┘         └────────────────────────┘
+              ▲                                    ▲
+              └──────────┬─────────────────────────┘
+                   ┌─────┴──────┐
+                   │ 5. Cliente │
+                   └────────────┘</pre>
+        <ol class="participants mt-1">
+          <li><strong>Iterador (Interfaz):</strong> declara las operaciones esenciales de avance: consultar si quedan elementos (<code>HayMas()</code>) y obtener el siguiente (<code>Siguiente()</code>).</li>
+          <li><strong>Iterador Concreto:</strong> implementa un algoritmo específico de recorrido y guarda su propio estado de progreso (índice, pila de nodos o caché).</li>
+          <li><strong>Colección (Interfaz):</strong> declara uno o más métodos fábrica que devuelven iteradores compatibles usando la interfaz abstracta.</li>
+          <li><strong>Colección Concreta:</strong> almacena los elementos y crea instancias del iterador concreto pasándose a sí misma como referencia.</li>
+          <li><strong>Cliente:</strong> consume tanto la colección como el iterador a través de sus interfaces, sin conocer la estructura interna de datos.</li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🧭 Aplicabilidad y 🛠️ Cómo implementarlo</h3>
+          <ul>
+            <li><strong>Cuándo usarlo:</strong> cuando quieras ocultar la complejidad interna de una estructura de datos, evitar duplicar lógica de recorrido por toda la aplicación, o recorrer colecciones heterogéneas bajo un contrato uniforme.</li>
+            <li><strong>Paso 1:</strong> Declara la interfaz <code>Iterador</code> con al menos <code>HayMas()</code> y <code>Siguiente()</code>.</li>
+            <li><strong>Paso 2:</strong> Declara la interfaz <code>Coleccion</code> con métodos que fabriquen iteradores.</li>
+            <li><strong>Paso 3:</strong> Implementa cada iterador concreto vinculándolo a la colección y sustituye los bucles acoplados del cliente por llamadas al iterador.</li>
+          </ul>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>Pros</h3>
+            <ul>
+              <li>Cumple <strong>SRP</strong> y <strong>OCP</strong>: aísla algoritmos de recorrido complejos y permite agregar nuevas vistas sin modificar la colección.</li>
+              <li>Permite recorridos simultáneos e independientes sobre la misma colección y pausar/reanudar la iteración.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>Contras</h3>
+            <ul>
+              <li>Puede ser excesivo si la aplicación solo recorre slices o listas simples de forma directa.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass-card mt-1">
+          <h3>🔗 Relación con otros patrones</h3>
+          <p>Se usa frecuentemente para recorrer árboles <strong>Composite</strong>, emplea <strong>Factory Method</strong> en las colecciones para instanciar el iterador adecuado, y puede apoyarse en <strong>Memento</strong> o <strong>Visitor</strong> durante el recorrido.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Iterator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">3 / 3 · Go</span>
+    </div>
+    <h2 class="slide-title">Iterator en Go</h2>
+    <p class="slide-subtitle">Iterador clásico con interfaz frente a iteradores nativos con <code>iter.Seq</code> (Go 1.23+)</p>
+
+    <div class="two-cols-wide">
+      <div>
+        <pre class="code-block tall" data-lang="go" data-label="iterator/main.go">package main
+
+import (
+	"fmt"
+	"iter"
+)
+
+type Libro struct {
+	Titulo string
+	Tema   string
+}
+
+// 1. Iterador (interfaz común para recorrer elementos)
+type Iterador interface {
+	HayMas() bool
+	Siguiente() Libro
+}
+
+// 3. Colección (interfaz que fabrica iteradores)
+type ColeccionLibros interface {
+	CrearIteradorPorTema(tema string) Iterador
+}
+
+// 4. Colección Concreta
+type Biblioteca struct {
+	libros []Libro
+}
+
+func (b *Biblioteca) Agregar(l Libro) { b.libros = append(b.libros, l) }
+
+func (b *Biblioteca) CrearIteradorPorTema(tema string) Iterador {
+	return &amp;IteradorPorTema{biblio: b, tema: tema, posicion: 0}
+}
+
+// Método idiomático en Go 1.23+: iterador funcional compatible con for-range
+func (b *Biblioteca) TodosEnOrdenInverso() iter.Seq[Libro] {
+	return func(yield func(Libro) bool) {
+		for i := len(b.libros) - 1; i &gt;= 0; i-- {
+			if !yield(b.libros[i]) {
+				return
+			}
+		}
+	}
+}
+
+// 2. Iterador Concreto: guarda su propio cursor de recorrido
+type IteradorPorTema struct {
+	biblio   *Biblioteca
+	tema     string
+	posicion int
+}
+
+func (it *IteradorPorTema) HayMas() bool {
+	for it.posicion &lt; len(it.biblio.libros) {
+		if it.biblio.libros[it.posicion].Tema == it.tema {
+			return true
+		}
+		it.posicion++
+	}
+	return false
+}
+
+func (it *IteradorPorTema) Siguiente() Libro {
+	libro := it.biblio.libros[it.posicion]
+	it.posicion++
+	return libro
+}
+
+func main() {
+	// 5. Cliente: usa la interfaz Iterador sin conocer el slice interno
+	biblio := &amp;Biblioteca{}
+	biblio.Agregar(Libro{Titulo: "Diseño de Compiladores", Tema: "Sistemas"})
+	biblio.Agregar(Libro{Titulo: "Patrones de Diseño GoF", Tema: "Arquitectura"})
+	biblio.Agregar(Libro{Titulo: "El Lenguaje Go", Tema: "Sistemas"})
+	biblio.Agregar(Libro{Titulo: "Arquitectura Limpia", Tema: "Arquitectura"})
+
+	fmt.Println("Recorrido con Iterador clásico (Tema = Sistemas):")
+	it := biblio.CrearIteradorPorTema("Sistemas")
+	for it.HayMas() {
+		l := it.Siguiente()
+		fmt.Printf("  📖 %s [%s]\n", l.Titulo, l.Tema)
+	}
+
+	fmt.Println("\nRecorrido con iter.Seq de Go 1.23+ (orden inverso):")
+	for l := range biblio.TodosEnOrdenInverso() {
+		fmt.Printf("  🔄 %s [%s]\n", l.Titulo, l.Tema)
+	}
+}</pre>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🔍 Explicación paso a paso</h3>
+          <ol>
+            <li><code>Biblioteca</code> encapsula el slice privado <code>libros</code> y ofrece dos formas de recorrerlo sin exponerlo.</li>
+            <li><code>IteradorPorTema</code> implementa el patrón GoF clásico: mantiene su índice <code>posicion</code> y salta los libros que no coincidan con el tema buscado.</li>
+            <li><code>TodosEnOrdenInverso()</code> devuelve un <code>iter.Seq[Libro]</code> que empuja cada elemento a la función <code>yield</code> dentro de un <code>for ... range</code> nativo.</li>
+          </ol>
+        </div>
+
+        <pre class="output-block">Recorrido con Iterador clásico (Tema = Sistemas):
+  📖 Diseño de Compiladores [Sistemas]
+  📖 El Lenguaje Go [Sistemas]
+
+Recorrido con iter.Seq de Go 1.23+ (orden inverso):
+  🔄 Arquitectura Limpia [Arquitectura]
+  🔄 El Lenguaje Go [Sistemas]
+  🔄 Patrones de Diseño GoF [Arquitectura]
+  🔄 Diseño de Compiladores [Sistemas]</pre>
+
+        <div class="go-tip">
+          <div class="icon">🐹</div>
+          <div>
+            <h3>Iteradores en Go: de <code>Next()</code> a <code>iter.Seq</code></h3>
+            <p>En la librería estándar verás el estilo <em>pull</em> en <code>bufio.Scanner</code> o <code>sql.Rows</code> (<code>for rows.Next()</code>). Desde <strong>Go 1.23+</strong> existen los iteradores <em>range-over-func</em> con el paquete <code>iter</code> (<code>iter.Seq[V]</code> e <code>iter.Seq2[K, V]</code>), que integran el patrón directamente con el bucle <code>for v := range col.All()</code>.</p>
+          </div>
+        </div>
+
+        <a class="source-link" href="https://refactoring.guru/es/design-patterns/iterator" target="_blank">📖 Teoría basada en refactoring.guru — Iterator</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     PATRÓN 4: MEDIATOR (Comportamiento)
+     ===================================================================== -->
+<div class="slide" id="p-mediator" data-toc="Mediator" data-toc-group="Comportamiento" data-section="Comportamiento · Mediator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">1 / 3 · Teoría</span>
+    </div>
+    <h2 class="slide-title">Mediator</h2>
+    <p class="slide-subtitle">También llamado: Mediador, Intermediary, Controller</p>
+
+    <div class="intent-box">
+      <span class="label">🎯 Propósito</span>
+      <p>Reduce las dependencias caóticas (todos contra todos) entre objetos. Restringe la comunicación directa entre los componentes y los fuerza a colaborar únicamente a través de un objeto mediador central.</p>
+    </div>
+
+    <div class="two-cols">
+      <div class="glass-card problem-card">
+        <h3>😟 Problema</h3>
+        <p>Imagina un formulario complejo de perfil de usuario donde marcar la casilla "Tengo mascota" muestra un campo oculto, cambiar el país recarga la lista de ciudades y el botón "Guardar" valida una docena de controles distintos.</p>
+        <p>Si cada control conoce y llama directamente a los demás componentes, se forma una telaraña de dependencias cruzadas: modificar un componente rompe los otros y resulta imposible reutilizar un botón o casilla en otra ventana de la aplicación.</p>
+      </div>
+      <div class="glass-card solution-card">
+        <h3>💡 Solución</h3>
+        <p>Corta toda comunicación directa entre los componentes y haz que cada uno conozca únicamente la interfaz de un <strong>Mediador</strong>.</p>
+        <p>Cuando ocurre un evento en un componente (por ejemplo, un clic o una solicitud de recurso), este simplemente notifica al mediador. El mediador encapsula toda la coordinación y decide qué otros componentes deben reaccionar, transformando una red caótica muchos-a-muchos en una estrella limpia uno-a-muchos.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="icon">🗼</div>
+      <div>
+        <h3>Analogía en el mundo real</h3>
+        <p>Los pilotos de decenas de aviones que se aproximan a un aeropuerto no negocian entre sí por radio quién aterriza primero (lo que causaría un caos aéreo). En su lugar, todos se comunican exclusivamente con la <strong>torre de control de tráfico aéreo</strong> (el <em>Mediador</em>), que conoce el estado de la pista y coordina el orden de aterrizaje y despegue de forma segura.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Mediator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">2 / 3 · Estructura</span>
+    </div>
+    <h2 class="slide-title">Mediator — Estructura</h2>
+    <p class="slide-subtitle">Topología en estrella con componentes desacoplados y coordinador central</p>
+
+    <div class="two-cols">
+      <div>
+        <pre class="uml">┌─────────────────────────────┐         ┌─────────────────────────────┐
+│       &lt;&lt;interface&gt;&gt;         │         │       &lt;&lt;interface&gt;&gt;         │
+│        2. Mediador          │◀────────│       1. Componente         │
+├─────────────────────────────┤ notifica├─────────────────────────────┤
+│ + SolicitarPista(a)         │         │ + Aterrizar()               │
+│ + NotificarDespegue(a)      │         │ + Despegar()                │
+└──────────────△──────────────┘         └──────────────△──────────────┘
+               │ implementa                            │ implementa
+┌──────────────┴──────────────┐         ┌──────────────┴──────────────┐
+│     3. MediadorConcreto     │────────▶│    4. ComponenteConcreto    │
+│       (TorreControl)        │coordina │          (Avion)            │
+├─────────────────────────────┤         ├─────────────────────────────┤
+│ - pistaLibre: bool          │         │ - codigo: string            │
+│ - colaEspera: []Aeronave    │         │ - torre: Mediador           │
+└─────────────────────────────┘         └─────────────────────────────┘</pre>
+        <ol class="participants mt-1">
+          <li><strong>Componentes:</strong> clases o structs con lógica de dominio que guardan una referencia a la interfaz del mediador sin saber qué concreto hay detrás.</li>
+          <li><strong>Mediador (Interfaz):</strong> declara los métodos de notificación mediante los cuales los componentes informan cualquier evento relevante.</li>
+          <li><strong>Mediador Concreto:</strong> encapsula las reglas de coordinación, mantiene referencias a los componentes administrados y redirige las acciones.</li>
+          <li><strong>Aislamiento entre colegas:</strong> los componentes concretos jamás se referencian entre sí; para cada uno, el resto del sistema es una caja negra detrás del mediador.</li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🧭 Aplicabilidad y 🛠️ Cómo implementarlo</h3>
+          <ul>
+            <li><strong>Cuándo usarlo:</strong> cuando un grupo de clases esté tan acoplado que sea difícil modificarlo, cuando no puedas reutilizar un componente porque arrastra dependencias hacia muchos colegas, o para evitar crear decenas de subclases solo para variar cómo colaboran.</li>
+            <li><strong>Paso 1:</strong> Identifica el grupo de componentes acoplados y declara la interfaz <code>Mediador</code> con su protocolo de notificación.</li>
+            <li><strong>Paso 2:</strong> Implementa el mediador concreto que guarde las referencias o colas de coordinación entre componentes.</li>
+            <li><strong>Paso 3:</strong> Inyecta la interfaz mediadora al construir cada componente y reemplaza las llamadas directas entre colegas por notificaciones al mediador.</li>
+          </ul>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>Pros</h3>
+            <ul>
+              <li>Cumple <strong>SRP</strong>: concentra la lógica de comunicación en un solo lugar fácil de auditar.</li>
+              <li>Cumple <strong>OCP</strong>: puedes cambiar las reglas de colaboración creando otro mediador sin tocar los componentes.</li>
+              <li>Reduce drásticamente el acoplamiento y facilita reutilizar componentes individuales.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>Contras</h3>
+            <ul>
+              <li>Con el tiempo, el mediador puede acumular demasiadas responsabilidades y convertirse en un <em>Objeto Todopoderoso (God Object)</em>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass-card mt-1">
+          <h3>🔗 Relación con otros patrones</h3>
+          <p>A diferencia de <strong>Facade</strong> (que solo simplifica la interfaz hacia un subsistema sin que los objetos internos la conozcan), en <strong>Mediator</strong> los componentes conocen al mediador y colaboran bidireccionalmente; además, suele apoyarse en <strong>Observer</strong> para recibir eventos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Mediator">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">3 / 3 · Go</span>
+    </div>
+    <h2 class="slide-title">Mediator en Go</h2>
+    <p class="slide-subtitle">Torre de control de tráfico aéreo coordinando aterrizajes y cola de espera</p>
+
+    <div class="two-cols-wide">
+      <div>
+        <pre class="code-block tall" data-lang="go" data-label="mediator/main.go">package main
+
+import "fmt"
+
+// 2. Mediador (interfaz de comunicación centralizada)
+type MediadorTorre interface {
+	SolicitarPista(a Aeronave) bool
+	NotificarDespegue(a Aeronave)
+}
+
+// 1. Componente (interfaz de las aeronaves que colaboran sin conocerse)
+type Aeronave interface {
+	Identificador() string
+	Aterrizar()
+	Despegar()
+	PermitirAterrizaje()
+}
+
+// 3. Mediador Concreto: coordina la pista y la cola de espera
+type TorreControl struct {
+	pistaLibre bool
+	colaEspera []Aeronave
+}
+
+func NuevaTorreControl() *TorreControl {
+	return &amp;TorreControl{pistaLibre: true}
+}
+
+func (t *TorreControl) SolicitarPista(a Aeronave) bool {
+	if t.pistaLibre {
+		t.pistaLibre = false
+		return true
+	}
+	t.colaEspera = append(t.colaEspera, a)
+	return false
+}
+
+func (t *TorreControl) NotificarDespegue(a Aeronave) {
+	if len(t.colaEspera) &gt; 0 {
+		siguiente := t.colaEspera[0]
+		t.colaEspera = t.colaEspera[1:]
+		siguiente.PermitirAterrizaje()
+	} else {
+		t.pistaLibre = true
+	}
+}
+
+// 4. Componente Concreto: solo se comunica con el mediador
+type Avion struct {
+	codigo string
+	torre  MediadorTorre
+}
+
+func (av *Avion) Identificador() string { return av.codigo }
+
+func (av *Avion) Aterrizar() {
+	if av.torre.SolicitarPista(av) {
+		fmt.Printf("  ✈️  [%s] Pista asignada → aterrizando ahora\n", av.codigo)
+	} else {
+		fmt.Printf("  ⏳ [%s] Pista ocupada → esperando turno en el aire\n", av.codigo)
+	}
+}
+
+func (av *Avion) Despegar() {
+	fmt.Printf("  🛫 [%s] Ha liberado la pista → notificando a la torre\n", av.codigo)
+	av.torre.NotificarDespegue(av)
+}
+
+func (av *Avion) PermitirAterrizaje() {
+	fmt.Printf("  🗼 [Torre → %s] Pista libre, autorizado para aterrizar\n", av.codigo)
+	fmt.Printf("  ✈️  [%s] Aterrizando tras espera\n", av.codigo)
+}
+
+func main() {
+	torre := NuevaTorreControl()
+	vuelo1 := &amp;Avion{codigo: "AV-101", torre: torre}
+	vuelo2 := &amp;Avion{codigo: "LA-205", torre: torre}
+	vuelo3 := &amp;Avion{codigo: "CM-309", torre: torre}
+
+	vuelo1.Aterrizar()
+	vuelo2.Aterrizar()
+	vuelo3.Aterrizar()
+	fmt.Println()
+	vuelo1.Despegar()
+	vuelo2.Despegar()
+}</pre>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🔍 Explicación paso a paso</h3>
+          <ol>
+            <li>Ningún <code>Avion</code> guarda referencias a otros aviones; su único campo de enlace es la interfaz <code>MediadorTorre</code>.</li>
+            <li>Cuando <code>vuelo2</code> y <code>vuelo3</code> intentan aterrizar mientras la pista está ocupada por <code>vuelo1</code>, la <code>TorreControl</code> los encola en <code>colaEspera</code>.</li>
+            <li>Al despegar un avión, este invoca <code>NotificarDespegue</code> y el mediador autoriza automáticamente al siguiente vuelo en espera.</li>
+          </ol>
+        </div>
+
+        <pre class="output-block">  ✈️  [AV-101] Pista asignada → aterrizando ahora
+  ⏳ [LA-205] Pista ocupada → esperando turno en el aire
+  ⏳ [CM-309] Pista ocupada → esperando turno en el aire
+
+  🛫 [AV-101] Ha liberado la pista → notificando a la torre
+  🗼 [Torre → LA-205] Pista libre, autorizado para aterrizar
+  ✈️  [LA-205] Aterrizando tras espera
+  🛫 [LA-205] Ha liberado la pista → notificando a la torre
+  🗼 [Torre → CM-309] Pista libre, autorizado para aterrizar
+  ✈️  [CM-309] Aterrizando tras espera</pre>
+
+        <div class="go-tip">
+          <div class="icon">🐹</div>
+          <div>
+            <h3>Nota idiomática en Go</h3>
+            <p>En programas concurrentes en Go, un mediador suele implementarse como una <strong>goroutine coordinadora</strong> que recibe mensajes de múltiples componentes mediante <code>chan</code> y mantiene el estado compartido sin necesidad de mutex complejos en los clientes.</p>
+          </div>
+        </div>
+
+        <a class="source-link" href="https://refactoring.guru/es/design-patterns/mediator" target="_blank">📖 Teoría basada en refactoring.guru — Mediator</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     PATRÓN 5: MEMENTO (Comportamiento)
+     ===================================================================== -->
+<div class="slide" id="p-memento" data-toc="Memento" data-toc-group="Comportamiento" data-section="Comportamiento · Memento">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">1 / 3 · Teoría</span>
+    </div>
+    <h2 class="slide-title">Memento</h2>
+    <p class="slide-subtitle">También llamado: Recuerdo, Instantánea, Snapshot</p>
+
+    <div class="intent-box">
+      <span class="label">🎯 Propósito</span>
+      <p>Permite capturar, externalizar y restaurar el estado interno previo de un objeto sin violar su encapsulación ni revelar los detalles privados de su implementación.</p>
+    </div>
+
+    <div class="two-cols">
+      <div class="glass-card problem-card">
+        <h3>😟 Problema</h3>
+        <p>Quieres implementar la función "Deshacer" o puntos de control transaccionales en un editor que maneja texto, posición del cursor, selección y estilos. Si un objeto externo intenta hacer la copia de seguridad leyendo campo por campo, chocará con los atributos privados del editor.</p>
+        <p>Si decides volver públicos todos los campos internos del editor y de la copia de seguridad para que cualquiera los lea o escriba, rompes por completo la encapsulación y acoplas el historial a cada cambio interno del editor.</p>
+      </div>
+      <div class="glass-card solution-card">
+        <h3>💡 Solución</h3>
+        <p>Delega la creación de la instantánea al propio dueño del estado: el objeto <strong>Originador</strong>. Este empaqueta una copia de sus campos privados dentro de un objeto inmutable llamado <strong>Memento</strong>.</p>
+        <p>Otro objeto llamado <strong>Cuidador</strong> (Caretaker, p. ej. el historial) almacena la pila de mementos, pero solo puede ver sus metadatos públicos (fecha, etiqueta) sin poder leer ni alterar el estado interno guardado. Cuando hay que revertir, el cuidador devuelve el memento al originador para que se restaure a sí mismo.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <div class="icon">💾</div>
+      <div>
+        <h3>Analogía en el mundo real</h3>
+        <p>Piensa en los puntos de guardado (<em>savegames</em>) de un videojuego: el motor de la partida (<em>Originador</em>) empaqueta la vida, inventario y coordenadas exactas del jugador en una ranura de guardado sellada (<em>Memento</em>). El menú de partidas guardadas (<em>Cuidador</em>) te muestra la lista con la hora y el nombre del nivel para que elijas cuál cargar, pero el menú no modifica las estadísticas internas del archivo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Memento">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">2 / 3 · Estructura</span>
+    </div>
+    <h2 class="slide-title">Memento — Estructura</h2>
+    <p class="slide-subtitle">Encapsulación estricta entre Originador, Instantánea inmutable y Cuidador</p>
+
+    <div class="two-cols">
+      <div>
+        <pre class="uml">┌───────────────────────────┐        ┌───────────────────────────┐
+│      1. Originador        │───────▶│        2. Memento         │
+│         (Editor)          │  crea  │       (Instantánea)       │
+├───────────────────────────┤        ├───────────────────────────┤
+│ - texto: string           │        │ - etiqueta: string        │
+│ - cursor: int             │        │ - texto: string (privado) │
+├───────────────────────────┤        │ - cursor: int   (privado) │
+│ + Guardar(): *Memento     │        ├───────────────────────────┤
+│ + Restaurar(m: *Memento)  │        │ + Etiqueta(): string      │
+└───────────────────────────┘        └─────────────▲─────────────┘
+              ▲                                    │
+              │ pide Guardar /                     │ almacena pila
+              │ pasa a Restaurar                   │ (sin ver estado)
+              └──────────────┬─────────────────────┘
+                     ┌───────┴───────────────────┐
+                     │       3. Cuidador         │
+                     │       (Historial)         │
+                     ├───────────────────────────┤
+                     │ - instantaneas: []*Memento│
+                     ├───────────────────────────┤
+                     │ + Registrar(m)            │
+                     │ + ExtraerUltima():*Memento│
+                     └───────────────────────────┘</pre>
+        <ol class="participants mt-1">
+          <li><strong>Originador:</strong> objeto cuyo estado cambia con el tiempo; sabe crear instantáneas de sus propios campos y restaurarse a partir de ellas.</li>
+          <li><strong>Memento:</strong> objeto de valor inmutable que guarda el estado capturado; oculta los datos internos a todos excepto al originador y solo expone metadatos seguros (como nombre o fecha).</li>
+          <li><strong>Cuidador (Caretaker):</strong> administra cuándo capturar y cuándo restaurar el estado manteniendo una pila de mementos, sin inspeccionar ni mutar su contenido interno.</li>
+        </ol>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🧭 Aplicabilidad y 🛠️ Cómo implementarlo</h3>
+          <ul>
+            <li><strong>Cuándo usarlo:</strong> cuando necesites producir instantáneas para deshacer operaciones o hacer <em>rollback</em> ante errores transaccionales, y cuando exponer getters/setters directos del estado interno violaría la encapsulación del objeto.</li>
+            <li><strong>Paso 1:</strong> Identifica la clase originadora y crea el struct <code>Memento</code> con campos privados que reflejen el estado del originador.</li>
+            <li><strong>Paso 2:</strong> Haz que el memento sea inmutable (inicializado solo al crearse, sin setters) y expón únicamente métodos de metadatos.</li>
+            <li><strong>Paso 3:</strong> Añade <code>Guardar()</code> y <code>Restaurar(m)</code> en el originador y haz que el <code>Cuidador</code> gestione la pila de mementos.</li>
+          </ul>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>Pros</h3>
+            <ul>
+              <li>Captura copias de seguridad completas sin romper la encapsulación de los campos privados.</li>
+              <li>Simplifica al originador delegando la gestión del historial al cuidador.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>Contras</h3>
+            <ul>
+              <li>Puede consumir bastante memoria RAM si se crean instantáneas de objetos grandes con demasiada frecuencia.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="glass-card mt-1">
+          <h3>🔗 Relación con otros patrones</h3>
+          <p>Trabaja de la mano con <strong>Command</strong> para implementar <em>undo/redo</em> (el comando ejecuta la acción y guarda un memento previo), con <strong>Iterator</strong> para congelar el estado de un recorrido, y tiene a <strong>Prototype</strong> como alternativa cuando el objeto es simple de clonar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" data-section="Comportamiento · Memento">
+  <span class="slide-number-badge"></span>
+  <div class="slide-inner">
+    <div class="pattern-head">
+      <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+      <span class="part-badge">3 / 3 · Go</span>
+    </div>
+    <h2 class="slide-title">Memento en Go</h2>
+    <p class="slide-subtitle">Puntos de control inmutables y restauración segura del estado de un editor</p>
+
+    <div class="two-cols-wide">
+      <div>
+        <pre class="code-block tall" data-lang="go" data-label="memento/main.go">package main
+
+import "fmt"
+
+// 1. Originador: objeto cuyo estado interno queremos salvaguardar
+type Editor struct {
+	texto  string
+	cursor int
+}
+
+func (e *Editor) Escribir(fragmento string) {
+	e.texto += fragmento
+	e.cursor = len(e.texto)
+}
+
+func (e *Editor) Mostrar() string {
+	return fmt.Sprintf("texto=%q (cursor=%d)", e.texto, e.cursor)
+}
+
+// Crea una instantánea inmutable de su estado actual
+func (e *Editor) Guardar(etiqueta string) *Memento {
+	return &amp;Memento{
+		etiqueta: etiqueta,
+		texto:    e.texto,
+		cursor:   e.cursor,
+	}
+}
+
+// Restaura su estado interno a partir de un memento
+func (e *Editor) Restaurar(m *Memento) {
+	if m == nil {
+		return
+	}
+	e.texto = m.texto
+	e.cursor = m.cursor
+}
+
+// 2. Memento: almacena el estado del originador en campos privados
+type Memento struct {
+	etiqueta string
+	texto    string
+	cursor   int
+}
+
+// El cuidador solo puede consultar metadatos públicos, nunca alterar el estado
+func (m *Memento) Etiqueta() string { return m.etiqueta }
+
+// 3. Cuidador (Caretaker): administra la pila de instantáneas
+type Historial struct {
+	instantaneas []*Memento
+}
+
+func (h *Historial) Registrar(m *Memento) {
+	fmt.Printf("  💾 Guardada instantánea [%s]\n", m.Etiqueta())
+	h.instantaneas = append(h.instantaneas, m)
+}
+
+func (h *Historial) ExtraerUltima() *Memento {
+	if len(h.instantaneas) == 0 {
+		return nil
+	}
+	idx := len(h.instantaneas) - 1
+	m := h.instantaneas[idx]
+	h.instantaneas = h.instantaneas[:idx]
+	return m
+}
+
+func main() {
+	editor := &amp;Editor{}
+	historial := &amp;Historial{}
+
+	editor.Escribir("package main; ")
+	historial.Registrar(editor.Guardar("v1: encabezado"))
+
+	editor.Escribir("func main() { ")
+	historial.Registrar(editor.Guardar("v2: firma main"))
+
+	editor.Escribir("syntax_error??? }")
+	fmt.Println("  Estado actual:", editor.Mostrar())
+
+	fmt.Println("\nRestaurando estados previos desde el historial:")
+	snap := historial.ExtraerUltima()
+	editor.Restaurar(snap)
+	fmt.Printf("  ⮌ Restaurado [%s] → %s\n", snap.Etiqueta(), editor.Mostrar())
+
+	snap = historial.ExtraerUltima()
+	editor.Restaurar(snap)
+	fmt.Printf("  ⮌ Restaurado [%s] → %s\n", snap.Etiqueta(), editor.Mostrar())
+}</pre>
+      </div>
+
+      <div>
+        <div class="glass-card mb-1">
+          <h3>🔍 Explicación paso a paso</h3>
+          <ol>
+            <li><code>Editor</code> (Originador) mantiene los campos no exportados <code>texto</code> y <code>cursor</code> y produce un <code>*Memento</code> en <code>Guardar()</code>.</li>
+            <li><code>Memento</code> mantiene sus campos en minúscula (no exportados) y ofrece únicamente el método de lectura de metadatos <code>Etiqueta()</code>.</li>
+            <li><code>Historial</code> (Cuidador) apila punteros <code>*Memento</code> y, cuando ocurre un error en el código editado, desapila las instantáneas para que <code>editor.Restaurar(snap)</code> recupere el estado exacto anterior.</li>
+          </ol>
+        </div>
+
+        <pre class="output-block">  💾 Guardada instantánea [v1: encabezado]
+  💾 Guardada instantánea [v2: firma main]
+  Estado actual: texto="package main; func main() { syntax_error??? }" (cursor=45)
+
+Restaurando estados previos desde el historial:
+  ⮌ Restaurado [v2: firma main] → texto="package main; func main() { " (cursor=28)
+  ⮌ Restaurado [v1: encabezado] → texto="package main; " (cursor=14)</pre>
+
+        <div class="go-tip">
+          <div class="icon">🐹</div>
+          <div>
+            <h3>Nota idiomática en Go</h3>
+            <p>En Go la visibilidad es a nivel de <strong>paquete</strong> (identificadores con minúscula inicial). Colocar <code>Editor</code> y <code>Memento</code> en su propio paquete permite que <code>Editor</code> acceda a los campos privados de <code>Memento</code>, mientras que un <code>Historial</code> externo solo ve el método exportado <code>Etiqueta()</code>.</p>
+          </div>
+        </div>
+
+        <a class="source-link" href="https://refactoring.guru/es/design-patterns/memento" target="_blank">📖 Teoría basada en refactoring.guru — Memento</a>
+      </div>
+    </div>
+  </div>
+</div>

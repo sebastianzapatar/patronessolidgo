@@ -1,0 +1,1142 @@
+    <!-- =====================================================================
+         PATRÓN CREACIONAL 1: FACTORY METHOD
+         ===================================================================== -->
+    <div class="slide" id="p-factory-method" data-toc="Factory Method" data-toc-group="Creacionales" data-section="Creacionales · Factory Method">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">1 / 3 · Teoría</span>
+        </div>
+        <h2 class="slide-title">Factory Method</h2>
+        <p class="slide-subtitle">También llamado: Método fábrica, Constructor virtual</p>
+
+        <div class="intent-box">
+          <span class="label">🎯 Propósito</span>
+          <p>Define una interfaz o contrato para crear objetos en una abstracción base, pero delega en los tipos concretos (subclases o implementaciones) la decisión de qué estructura o clase específica instanciar.</p>
+        </div>
+
+        <div class="two-cols">
+          <div class="glass-card problem-card">
+            <h3>😟 Problema</h3>
+            <p>Imagina que desarrollas una aplicación de gestión logística. Al inicio sólo transportas carga por tierra, así que todo tu código instancia directamente objetos <code>Camion</code>. Cuando tu sistema crece y necesitas incorporar transporte marítimo con objetos <code>Barco</code>, descubres que el código cliente está fuertemente acoplado a <code>Camion</code>.</p>
+            <p>Añadir barcos o aviones obligaría a llenar el código de condicionales (<code>if/switch</code>) preguntando el tipo de transporte en decenas de archivos, haciendo el mantenimiento frágil y costoso.</p>
+          </div>
+          <div class="glass-card solution-card">
+            <h3>💡 Solución</h3>
+            <p>Sustituir las llamadas directas de construcción (<code>&amp;Camion{}</code>) por invocaciones a un <strong>método fábrica</strong> especial (<code>CrearTransporte()</code>) declarado en una interfaz creadora común (<code>Logistica</code>).</p>
+            <p>Cada variante creadora (<code>LogisticaTerrestre</code>, <code>LogisticaMaritima</code>) implementa ese método devolviendo un producto concreto diferente (<code>Camion</code> o <code>Barco</code>), pero ambos cumplen la misma interfaz <code>Transporte</code>. El código cliente opera con <code>Transporte</code> sin saber cómo fue construido ni de qué tipo concreto se trata.</p>
+          </div>
+        </div>
+
+        <div class="analogy">
+          <div class="icon">🌍</div>
+          <div>
+            <h3>Analogía en el mundo real</h3>
+            <p>En una empresa de mensajería nacional, el gerente de envíos sigue siempre el mismo protocolo: "preparar paquete, asignar medio de transporte y despachar". Si la sucursal es terrestre, el encargado de flota asigna un <strong>camión</strong>; si es portuaria, asigna un <strong>buque de carga</strong>. El protocolo de despacho no cambia porque confía en que cualquier transporte sabe cómo <em>entregar</em> la mercancía.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Factory Method">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">2 / 3 · Estructura</span>
+        </div>
+        <h2 class="slide-title">Factory Method — Estructura y análisis</h2>
+
+        <div class="two-cols">
+          <div>
+            <pre class="uml">┌──────────────────────────────┐         ┌──────────────────────┐
+│    &lt;&lt;interface&gt;&gt; Logistica    │         │ &lt;&lt;interface&gt;&gt;        │
+│          (3 Creador)         │────────▶│     Transporte       │
+├──────────────────────────────┤   usa   │    (1 Producto)      │
+│ + CrearTransporte()          │         ├──────────────────────┤
+└──────────────△───────────────┘         │ + Entregar(carga)    │
+               │                         └──────────△───────────┘
+       ┌───────┴────────┐                           │
+┌──────┴───────┐ ┌──────┴───────┐           ┌───────┴────────┐
+│ Logistica    │ │ Logistica    │    ┌──────┴─────┐   ┌──────┴─────┐
+│ Terrestre    │ │ Maritima     │    │   Camion   │   │   Barco    │
+│ (4 Creador)  │ │ (4 Creador)  │    │(2 Concreto)│   │(2 Concreto)│
+└──────────────┘ └──────────────┘    └────────────┘   └────────────┘</pre>
+            <div class="glass-card mt-1">
+              <h3>🔗 Relación con otros patrones</h3>
+              <ul>
+                <li>Muchos diseños empiezan con <strong>Factory Method</strong> (más simple) y evolucionan hacia <strong>Abstract Factory</strong>, <strong>Prototype</strong> o <strong>Builder</strong> cuando necesitan mayor flexibilidad.</li>
+                <li><strong>Abstract Factory</strong> suele implementarse como un conjunto de varios <em>Factory Methods</em>.</li>
+                <li>Es una especialización de <strong>Template Method</strong> para el paso específico de creación de objetos.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🧩 Participantes</h3>
+              <ol class="participants">
+                <li><strong>Producto (<code>Transporte</code>):</strong> declara la interfaz común a todos los objetos que los creadores pueden producir.</li>
+                <li><strong>Productos Concretos (<code>Camion</code>, <code>Barco</code>):</strong> proveen distintas implementaciones de la interfaz del producto.</li>
+                <li><strong>Creador (<code>Logistica</code>):</strong> declara el método fábrica que retorna objetos del tipo <code>Producto</code>; suele acompañarse de lógica de negocio que opera sobre esos productos.</li>
+                <li><strong>Creadores Concretos (<code>LogisticaTerrestre</code>, <code>LogisticaMaritima</code>):</strong> implementan el método fábrica retornando una instancia de un producto concreto específico.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-cols mt-1">
+          <div class="glass-card">
+            <h3>🧭 Aplicabilidad</h3>
+            <ul>
+              <li>Cuando no conoces de antemano los tipos concretos ni las dependencias exactas de los objetos con los que debe operar tu sistema.</li>
+              <li>Cuando deseas ofrecer a los usuarios de tu biblioteca o paquete un punto de extensión limpio para enchufar sus propios componentes.</li>
+              <li>Cuando necesitas reutilizar objetos existentes (p. ej., desde un pool o caché de conexiones) en vez de instanciar nuevos cada vez.</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <h3>🛠️ Cómo implementarlo</h3>
+            <ol>
+              <li>Haz que todos los productos implementen una misma interfaz con métodos que tengan sentido para todos ellos.</li>
+              <li>Declara el método fábrica en la interfaz o estructura creadora con tipo de retorno igual a la interfaz del producto.</li>
+              <li>Sustituye en la lógica de negocio las creaciones directas por llamadas al método fábrica.</li>
+              <li>Crea un creador concreto para cada variante de producto para que instancie y devuelva el tipo adecuado.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>✅ Pros</h3>
+            <ul>
+              <li>Elimina el acoplamiento fuerte entre la lógica creadora y los productos concretos.</li>
+              <li><strong>Principio de Responsabilidad Única (SRP):</strong> concentra el código de creación en un único lugar fácil de mantener.</li>
+              <li><strong>Principio Abierto/Cerrado (OCP):</strong> incorpora nuevos tipos de productos sin modificar el código cliente existente.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>❌ Contras</h3>
+            <ul>
+              <li>Puede incrementar la cantidad de tipos y estructuras si se exige crear un creador concreto por cada producto sencillo.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Factory Method">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">3 / 3 · Go</span>
+        </div>
+        <h2 class="slide-title">Factory Method en Go</h2>
+
+        <div class="two-cols-wide">
+          <div>
+            <pre class="code-block tall" data-lang="go" data-label="factorymethod/main.go">package main
+
+import "fmt"
+
+// 1. Producto (interfaz común a todos los transportes)
+type Transporte interface {
+	Entregar(carga string) string
+}
+
+// 2. Productos Concretos
+type Camion struct{ Placa string }
+
+func (c *Camion) Entregar(carga string) string {
+	return fmt.Sprintf("🚚 Camión [%s] entrega %q por carretera", c.Placa, carga)
+}
+
+type Barco struct{ Nombre string }
+
+func (b *Barco) Entregar(carga string) string {
+	return fmt.Sprintf("🚢 Barco %q entrega %q por vía marítima", b.Nombre, carga)
+}
+
+// 3. Creador (interfaz con el Factory Method)
+type Logistica interface {
+	CrearTransporte() Transporte // Factory Method
+}
+
+// Lógica de negocio común que trabaja con la interfaz Creador
+// sin conocer el tipo concreto de transporte que se creará.
+func PlanificarEntrega(l Logistica, carga string) {
+	transporte := l.CrearTransporte()
+	fmt.Println("📦 Planificando:", transporte.Entregar(carga))
+}
+
+// 4. Creadores Concretos (sobrescriben el Factory Method)
+type LogisticaTerrestre struct{ PlacaAsignada string }
+
+func (lt *LogisticaTerrestre) CrearTransporte() Transporte {
+	return &amp;Camion{Placa: lt.PlacaAsignada}
+}
+
+type LogisticaMaritima struct{ BuqueAsignado string }
+
+func (lm *LogisticaMaritima) CrearTransporte() Transporte {
+	return &amp;Barco{Nombre: lm.BuqueAsignado}
+}
+
+func main() {
+	terrestre := &amp;LogisticaTerrestre{PlacaAsignada: "ABC-123"}
+	maritima := &amp;LogisticaMaritima{BuqueAsignado: "El Navegante"}
+
+	PlanificarEntrega(terrestre, "Electrónicos")
+	PlanificarEntrega(maritima, "Contenedores de grano")
+}</pre>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🔍 Explicación paso a paso</h3>
+              <ol>
+                <li><code>Transporte</code> define el contrato del <strong>Producto</strong> con el método <code>Entregar</code>.</li>
+                <li><code>Camion</code> y <code>Barco</code> implementan implícitamente <code>Transporte</code> cada uno a su manera.</li>
+                <li><code>Logistica</code> declara el <em>Factory Method</em> <code>CrearTransporte() Transporte</code>.</li>
+                <li><code>PlanificarEntrega</code> contiene la lógica de negocio reutilizable: pide un transporte a la fábrica y lo usa sin acoplarse a camiones ni barcos.</li>
+                <li>Si mañana agregamos <code>LogisticaAerea</code> y <code>Avion</code>, <code>PlanificarEntrega</code> no sufre ni un solo cambio.</li>
+              </ol>
+            </div>
+
+            <pre class="output-block mt-1">📦 Planificando: 🚚 Camión [ABC-123] entrega "Electrónicos" por carretera
+📦 Planificando: 🚢 Barco "El Navegante" entrega "Contenedores de grano" por vía marítima</pre>
+
+            <div class="go-tip">
+              <div class="icon">🐹</div>
+              <div>
+                <h3>Nota idiomática en Go</h3>
+                <p>Como Go no tiene clases abstractas ni herencia, la lógica común (<code>PlanificarEntrega</code>) se escribe como una función que recibe la interfaz <code>Logistica</code> (o mediante <em>embedding</em>), y a menudo un simple constructor <code>NewTransporte(tipo)</code> o un tipo función <code>type CreadorTransporte func() Transporte</code> basta cuando no hay estado adicional en el creador.</p>
+              </div>
+            </div>
+
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/factory-method" target="_blank">📖 Teoría basada en refactoring.guru — Factory Method</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN CREACIONAL 2: ABSTRACT FACTORY
+         ===================================================================== -->
+    <div class="slide" id="p-abstract-factory" data-toc="Abstract Factory" data-toc-group="Creacionales" data-section="Creacionales · Abstract Factory">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">1 / 3 · Teoría</span>
+        </div>
+        <h2 class="slide-title">Abstract Factory</h2>
+        <p class="slide-subtitle">También llamado: Fábrica abstracta, Kit</p>
+
+        <div class="intent-box">
+          <span class="label">🎯 Propósito</span>
+          <p>Permite producir familias de objetos relacionados o dependientes entre sí sin especificar sus tipos o clases concretas, garantizando que los objetos creados sean siempre compatibles.</p>
+        </div>
+
+        <div class="two-cols">
+          <div class="glass-card problem-card">
+            <h3>😟 Problema</h3>
+            <p>Imagina un simulador de tienda de muebles o un toolkit de interfaz gráfica multiplataforma. Tienes una <strong>familia de productos</strong> que trabajan juntos (p. ej. <code>Boton</code> + <code>Casilla</code>, o <code>Silla</code> + <code>Sofa</code> + <code>Mesilla</code>) y varias <strong>variantes o estilos</strong> (<code>Windows</code> vs. <code>macOS</code>, o <code>Moderno</code> vs. <code>Victoriano</code>).</p>
+            <p>Si el código cliente instancia widgets o muebles sueltos directamente, es muy fácil mezclar por error un botón de Windows con una casilla de macOS, o llenar la aplicación de condicionales cada vez que se agrega un nuevo sistema operativo o catálogo.</p>
+          </div>
+          <div class="glass-card solution-card">
+            <h3>💡 Solución</h3>
+            <p>Declarar primero una interfaz para cada producto de la familia (<code>Boton</code>, <code>Casilla</code>) y luego una interfaz <strong>Fábrica Abstracta</strong> (<code>FabricaGUI</code>) con métodos de creación para todos los productos de la familia (<code>CrearBoton()</code>, <code>CrearCasilla()</code>).</p>
+            <p>Por cada variante o estilo se implementa una <strong>Fábrica Concreta</strong> (<code>FabricaWindows</code>, <code>FabricaMac</code>) que produce únicamente objetos de esa misma familia. El cliente recibe una fábrica abstracta al iniciar y todos los elementos que solicita combinan entre sí automáticamente.</p>
+          </div>
+        </div>
+
+        <div class="analogy">
+          <div class="icon">🛋️</div>
+          <div>
+            <h3>Analogía en el mundo real</h3>
+            <p>Cuando compras un juego de sala por catálogo, eliges primero la línea de diseño (por ejemplo, <em>Escandinava</em> o <em>Industrial</em>). A partir de ese proveedor pides una silla, un sofá y una mesa de centro: sin importar qué pieza pidas, todas comparten materiales, colores y proporciones compatibles entre sí.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Abstract Factory">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">2 / 3 · Estructura</span>
+        </div>
+        <h2 class="slide-title">Abstract Factory — Estructura y análisis</h2>
+
+        <div class="two-cols">
+          <div>
+            <pre class="uml">┌───────────────────────────┐        ┌──────────────────────────┐
+│ &lt;&lt;interface&gt;&gt; FabricaGUI  │        │       (5 Cliente)        │
+│   (3 Fábrica Abstracta)   │◀───────│ RenderizarPantalla(f)    │
+├───────────────────────────┤        └─────────────┬────────────┘
+│ + CrearBoton(): Boton     │                      │ usa interfaces
+│ + CrearCasilla(): Casilla │                      ▼
+└─────────────△─────────────┘        ┌──────────────────────────┐
+       ┌──────┴───────┐              │ &lt;&lt;interface&gt;&gt; Boton      │
+┌──────┴───────┐┌─────┴────────┐     │ &lt;&lt;interface&gt;&gt; Casilla    │
+│FabricaWindows││  FabricaMac  │────▶│ (1 Productos Abstractos) │
+│ (4 Concreta) ││ (4 Concreta) │crea └─────────────△────────────┘
+└──────────────┘└──────────────┘                   │
+                                     ┌─────────────┴────────────┐
+                                     │ BotonWindows / BotonMac  │
+                                     │ (2 Productos Concretos)  │
+                                     └──────────────────────────┘</pre>
+            <div class="glass-card mt-1">
+              <h3>🔗 Relación con otros patrones</h3>
+              <ul>
+                <li>Suele construirse a partir de varios <strong>Factory Methods</strong> o apoyarse en <strong>Prototype</strong> para clonar familias de productos.</li>
+                <li>Mientras <strong>Abstract Factory</strong> devuelve familias de objetos de inmediato, <strong>Builder</strong> construye un único objeto complejo paso a paso.</li>
+                <li>Las fábricas concretas suelen implementarse como <strong>Singletons</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🧩 Participantes</h3>
+              <ol class="participants">
+                <li><strong>Productos Abstractos (<code>Boton</code>, <code>Casilla</code>):</strong> interfaces para cada tipo de componente distinto que integra la familia.</li>
+                <li><strong>Productos Concretos (<code>BotonWindows</code>, <code>BotonMac</code>, etc.):</strong> implementaciones de los productos agrupadas por variante.</li>
+                <li><strong>Fábrica Abstracta (<code>FabricaGUI</code>):</strong> declara los métodos para crear cada uno de los productos abstractos de la familia.</li>
+                <li><strong>Fábricas Concretas (<code>FabricaWindows</code>, <code>FabricaMac</code>):</strong> implementan los métodos de creación devolviendo productos de una única variante compatible.</li>
+                <li><strong>Cliente (<code>RenderizarPantalla</code>):</strong> trabaja exclusivamente con las interfaces <code>FabricaGUI</code>, <code>Boton</code> y <code>Casilla</code>.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-cols mt-1">
+          <div class="glass-card">
+            <h3>🧭 Aplicabilidad</h3>
+            <ul>
+              <li>Cuando el código necesita trabajar con diversas familias de productos relacionados sin depender de sus clases concretas.</li>
+              <li>Cuando es indispensable garantizar que los productos creados en un contexto pertenezcan siempre a la misma variante o tema.</li>
+              <li>Cuando una clase acumula múltiples <em>Factory Methods</em> que empañan su responsabilidad principal.</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <h3>🛠️ Cómo implementarlo</h3>
+            <ol>
+              <li>Traza una matriz de tipos de productos (filas) frente a variantes de familia (columnas).</li>
+              <li>Declara interfaces de producto abstracto para cada tipo e impleméntalas en las variantes concretas.</li>
+              <li>Define la interfaz de la fábrica abstracta con un método de creación por cada producto abstracto.</li>
+              <li>Crea una estructura de fábrica concreta por cada variante e inyéctala al código cliente durante la inicialización.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>✅ Pros</h3>
+            <ul>
+              <li>Garantiza al 100% que los productos que recibe el cliente sean compatibles entre sí.</li>
+              <li>Desacopla el código cliente de los tipos concretos (cumple <strong>SRP</strong> y <strong>OCP</strong> al agregar nuevas variantes completas).</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>❌ Contras</h3>
+            <ul>
+              <li>Añade bastantes interfaces y tipos nuevos; además, agregar un <em>nuevo tipo de producto</em> a la familia requiere modificar la interfaz de la fábrica y todas sus implementaciones.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Abstract Factory">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">3 / 3 · Go</span>
+        </div>
+        <h2 class="slide-title">Abstract Factory en Go</h2>
+
+        <div class="two-cols-wide">
+          <div>
+            <pre class="code-block tall" data-lang="go" data-label="abstractfactory/main.go">package main
+
+import "fmt"
+
+// 1. Productos Abstractos (familia de objetos relacionados)
+type Boton interface {
+	Dibujar() string
+}
+
+type Casilla interface {
+	Marcar(activo bool) string
+}
+
+// 2. Productos Concretos — Variante Windows
+type BotonWindows struct{}
+
+func (BotonWindows) Dibujar() string { return "[ 🪟 Botón estilo Windows ]" }
+
+type CasillaWindows struct{}
+
+func (CasillaWindows) Marcar(ok bool) string {
+	return fmt.Sprintf("[🪟 Casilla Windows: %v]", ok)
+}
+
+// 2. Productos Concretos — Variante Mac
+type BotonMac struct{}
+
+func (BotonMac) Dibujar() string { return "( 🍎 Botón estilo macOS )" }
+
+type CasillaMac struct{}
+
+func (CasillaMac) Marcar(ok bool) string {
+	return fmt.Sprintf("(🍎 Casilla macOS: %v)", ok)
+}
+
+// 3. Fábrica Abstracta (crea una familia completa de productos)
+type FabricaGUI interface {
+	CrearBoton() Boton
+	CrearCasilla() Casilla
+}
+
+// 4. Fábricas Concretas (garantizan compatibilidad de la familia)
+type FabricaWindows struct{}
+
+func (FabricaWindows) CrearBoton() Boton     { return BotonWindows{} }
+func (FabricaWindows) CrearCasilla() Casilla { return CasillaWindows{} }
+
+type FabricaMac struct{}
+
+func (FabricaMac) CrearBoton() Boton     { return BotonMac{} }
+func (FabricaMac) CrearCasilla() Casilla { return CasillaMac{} }
+
+// 5. Cliente: usa únicamente las interfaces abstractas
+func RenderizarPantalla(f FabricaGUI) {
+	boton := f.CrearBoton()
+	casilla := f.CrearCasilla()
+	fmt.Println(boton.Dibujar(), "-&gt;", casilla.Marcar(true))
+}
+
+func main() {
+	fmt.Println("=== Entorno Windows ===")
+	RenderizarPantalla(FabricaWindows{})
+
+	fmt.Println("=== Entorno macOS ===")
+	RenderizarPantalla(FabricaMac{})
+}</pre>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🔍 Explicación paso a paso</h3>
+              <ol>
+                <li>Definimos dos productos de una misma familia UI: <code>Boton</code> y <code>Casilla</code>.</li>
+                <li>Implementamos las variantes <code>Windows</code> y <code>Mac</code> para cada producto.</li>
+                <li><code>FabricaGUI</code> agrupa la creación de ambos productos en una sola interfaz cohesiva.</li>
+                <li><code>RenderizarPantalla</code> recibe cualquier <code>FabricaGUI</code>: es imposible que mezcle un botón Windows con una casilla Mac.</li>
+              </ol>
+            </div>
+
+            <pre class="output-block mt-1">=== Entorno Windows ===
+[ 🪟 Botón estilo Windows ] -&gt; [🪟 Casilla Windows: true]
+=== Entorno macOS ===
+( 🍎 Botón estilo macOS ) -&gt; (🍎 Casilla macOS: true)</pre>
+
+            <div class="go-tip">
+              <div class="icon">🐹</div>
+              <div>
+                <h3>Nota idiomática en Go</h3>
+                <p>En Go, las fábricas concretas sin estado como <code>FabricaWindows{}</code> son estructuras vacías (<em>zero-size structs</em>, 0 bytes en memoria). Cumplen la interfaz <code>FabricaGUI</code> sin sobrecarga de memoria y permiten inyección de dependencias limpia en tests.</p>
+              </div>
+            </div>
+
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/abstract-factory" target="_blank">📖 Teoría basada en refactoring.guru — Abstract Factory</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN CREACIONAL 3: BUILDER
+         ===================================================================== -->
+    <div class="slide" id="p-builder" data-toc="Builder" data-toc-group="Creacionales" data-section="Creacionales · Builder">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">1 / 3 · Teoría</span>
+        </div>
+        <h2 class="slide-title">Builder</h2>
+        <p class="slide-subtitle">También llamado: Constructor paso a paso</p>
+
+        <div class="intent-box">
+          <span class="label">🎯 Propósito</span>
+          <p>Permite construir objetos complejos paso a paso, produciendo distintos tipos y representaciones de un objeto empleando exactamente el mismo proceso de construcción.</p>
+        </div>
+
+        <div class="two-cols">
+          <div class="glass-card problem-card">
+            <h3>😟 Problema</h3>
+            <p>Imagina crear un objeto complejo como una <code>Casa</code> o una petición HTTP/SQL con docenas de opciones: paredes, tipo de techo, número de ventanas, calefacción, jardín, piscina, garaje, etc.</p>
+            <p>Si creas una subclase por cada combinación posible, la jerarquía explota. Y si pones todo en un único constructor gigante de 15 parámetros (<em>constructor telescópico</em>), las llamadas quedan ilegibles y propensas a errores porque la mayoría de los parámetros serán nulos o irrelevantes en el 90% de los casos.</p>
+          </div>
+          <div class="glass-card solution-card">
+            <h3>💡 Solución</h3>
+            <p>Extraer el código de ensamblaje fuera del producto y llevarlo a objetos independientes llamados <strong>constructores (builders)</strong>, dividiendo la creación en pasos claros (<code>ConstruirParedes</code>, <code>ConstruirTecho</code>, <code>ConstruirPiscina</code>).</p>
+            <p>Se pueden definir distintos constructores concretos (p. ej. <code>ConstructorCabana</code>, <code>ConstructorMansion</code>) que ejecutan los mismos pasos con materiales diferentes, y opcionalmente una clase <strong>Directora</strong> que encapsula recetas u órdenes de construcción reutilizables sin exponer el producto hasta que esté terminado.</p>
+          </div>
+        </div>
+
+        <div class="analogy">
+          <div class="icon">🏗️</div>
+          <div>
+            <h3>Analogía en el mundo real</h3>
+            <p>Un maestro de obra (<strong>Director</strong>) conoce el orden exacto para levantar una vivienda: primero cimientos, luego muros, después techo y finalmente acabados. Si contrata a una cuadrilla rústica (<strong>Constructor A</strong>), esos mismos pasos producen una cabaña de madera; si contrata a una cuadrilla de lujo (<strong>Constructor B</strong>), la misma secuencia entrega una mansión moderna con piscina.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Builder">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">2 / 3 · Estructura</span>
+        </div>
+        <h2 class="slide-title">Builder — Estructura y análisis</h2>
+
+        <div class="two-cols">
+          <div>
+            <pre class="uml">┌──────────────────────┐        ┌─────────────────────────────┐
+│     (4 Director)     │───────▶│ &lt;&lt;interface&gt;&gt;               │
+│  + ConstruirCompleta │ dirige │     ConstructorCasa         │
+└──────────────────────┘        │     (1 Constructora)        │
+           ▲                    ├─────────────────────────────┤
+           │ asocia             │ + Reiniciar()               │
+      (5 Cliente)               │ + ConstruirParedes()        │
+                                │ + ConstruirTecho() ...      │
+                                └──────────────△──────────────┘
+                                       ┌───────┴────────┐
+                               ┌───────┴───────┐┌───────┴───────┐
+                               │  Constructor  ││  Constructor  │
+                               │    Cabana     ││    Mansion    │
+                               │ (2 Concreto)  ││ (2 Concreto)  │
+                               └───────┬───────┘└───────┬───────┘
+                                       └───────┬────────┘
+                                               ▼ produce
+                                      ┌─────────────────┐
+                                      │      Casa       │
+                                      │  (3 Producto)   │
+                                      └─────────────────┘</pre>
+            <div class="glass-card mt-1">
+              <h3>🔗 Relación con otros patrones</h3>
+              <ul>
+                <li><strong>Builder</strong> construye un objeto complejo paso a paso y entrega el resultado al final; <strong>Abstract Factory</strong> entrega familias de objetos inmediatamente.</li>
+                <li>Es muy útil para construir árboles <strong>Composite</strong> complejos dado que sus pasos pueden invocarse recursivamente.</li>
+                <li>Al combinarlo con <strong>Bridge</strong>, el Director actúa como la abstracción y los distintos Builders como las implementaciones.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🧩 Participantes</h3>
+              <ol class="participants">
+                <li><strong>Interfaz Constructora (<code>ConstructorCasa</code>):</strong> declara los pasos de construcción comunes a todas las representaciones.</li>
+                <li><strong>Constructores Concretos (<code>ConstructorCabana</code>, <code>ConstructorMansion</code>):</strong> implementan cada paso de manera específica y guardan el estado intermedio.</li>
+                <li><strong>Producto (<code>Casa</code>):</strong> el objeto complejo resultante tras completar los pasos.</li>
+                <li><strong>Director:</strong> define el orden en que se ejecutan los pasos para crear configuraciones estándar reutilizables.</li>
+                <li><strong>Cliente:</strong> asocia un constructor concreto con el director (o invoca los pasos directamente) y recoge el producto final.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-cols mt-1">
+          <div class="glass-card">
+            <h3>🧭 Aplicabilidad</h3>
+            <ul>
+              <li>Para eliminar constructores con largas listas de parámetros opcionales (<em>constructor telescópico</em>).</li>
+              <li>Cuando el código debe crear distintas representaciones de un mismo producto (p. ej. cabaña vs. mansión, o automóvil vs. manual) cuyos pasos de montaje son similares.</li>
+              <li>Para ensamblar estructuras complejas o árboles <em>Composite</em> aplazando o repitiendo pasos sin exponer un objeto incompleto.</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <h3>🛠️ Cómo implementarlo</h3>
+            <ol>
+              <li>Identifica y declara en la interfaz constructora los pasos de producción comunes a todas las representaciones.</li>
+              <li>Crea un constructor concreto por cada representación e incluye un método para extraer el producto terminado y reiniciar el estado.</li>
+              <li>Opcionalmente, crea una estructura <code>Director</code> que reciba el constructor y ejecute rutinas de pasos predefinidas.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>✅ Pros</h3>
+            <ul>
+              <li>Permite construir objetos paso a paso, aplazar pasos o ejecutarlos de forma condicional/recursiva.</li>
+              <li>Reutiliza el mismo proceso de montaje para distintas representaciones y aísla la construcción compleja de la lógica del producto (<strong>SRP</strong>).</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>❌ Contras</h3>
+            <ul>
+              <li>Aumenta la complejidad general cuando se requiere crear múltiples interfaces y estructuras constructoras para objetos simples.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Builder">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">3 / 3 · Go</span>
+        </div>
+        <h2 class="slide-title">Builder en Go</h2>
+
+        <div class="two-cols-wide">
+          <div>
+            <pre class="code-block tall" data-lang="go" data-label="builder/main.go">package main
+
+import "fmt"
+
+// 3. Producto complejo resultante
+type Casa struct {
+	Paredes    string
+	Techo      string
+	Ventanas   int
+	ConPiscina bool
+}
+
+func (c Casa) String() string {
+	return fmt.Sprintf("🏠 Casa [Paredes: %s | Techo: %s | Ventanas: %d | Piscina: %v]",
+		c.Paredes, c.Techo, c.Ventanas, c.ConPiscina)
+}
+
+// 1. Interfaz Constructora (define los pasos comunes)
+type ConstructorCasa interface {
+	Reiniciar()
+	ConstruirParedes()
+	ConstruirTecho()
+	ConstruirVentanas()
+	ConstruirPiscina()
+	ObtenerCasa() Casa
+}
+
+// 2. Constructor Concreto A: Cabaña de madera
+type ConstructorCabana struct{ casa Casa }
+
+func (b *ConstructorCabana) Reiniciar()         { b.casa = Casa{} }
+func (b *ConstructorCabana) ConstruirParedes()  { b.casa.Paredes = "Troncos de pino" }
+func (b *ConstructorCabana) ConstruirTecho()    { b.casa.Techo = "Tejas de madera" }
+func (b *ConstructorCabana) ConstruirVentanas() { b.casa.Ventanas = 2 }
+func (b *ConstructorCabana) ConstruirPiscina()  { b.casa.ConPiscina = false }
+func (b *ConstructorCabana) ObtenerCasa() Casa  { return b.casa }
+
+// 2. Constructor Concreto B: Mansión moderna
+type ConstructorMansion struct{ casa Casa }
+
+func (b *ConstructorMansion) Reiniciar()         { b.casa = Casa{} }
+func (b *ConstructorMansion) ConstruirParedes()  { b.casa.Paredes = "Hormigón y cristal" }
+func (b *ConstructorMansion) ConstruirTecho()    { b.casa.Techo = "Terraza solar" }
+func (b *ConstructorMansion) ConstruirVentanas() { b.casa.Ventanas = 12 }
+func (b *ConstructorMansion) ConstruirPiscina()  { b.casa.ConPiscina = true }
+func (b *ConstructorMansion) ObtenerCasa() Casa  { return b.casa }
+
+// 4. Director (define el orden de los pasos de construcción)
+type Director struct{ constructor ConstructorCasa }
+
+func (d *Director) CambiarConstructor(c ConstructorCasa) { d.constructor = c }
+
+func (d *Director) ConstruirCompleta() Casa {
+	d.constructor.Reiniciar()
+	d.constructor.ConstruirParedes()
+	d.constructor.ConstruirTecho()
+	d.constructor.ConstruirVentanas()
+	d.constructor.ConstruirPiscina()
+	return d.constructor.ObtenerCasa()
+}
+
+func main() {
+	director := &amp;Director{}
+
+	cabana := &amp;ConstructorCabana{}
+	director.CambiarConstructor(cabana)
+	fmt.Println(director.ConstruirCompleta())
+
+	mansion := &amp;ConstructorMansion{}
+	director.CambiarConstructor(mansion)
+	fmt.Println(director.ConstruirCompleta())
+}</pre>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🔍 Explicación paso a paso</h3>
+              <ol>
+                <li><code>Casa</code> es el producto con múltiples atributos configurables.</li>
+                <li><code>ConstructorCasa</code> declara los pasos de ensamblaje que cualquier variante debe cumplir.</li>
+                <li><code>ConstructorCabana</code> y <code>ConstructorMansion</code> usan receptores de puntero (<code>*Constructor...</code>) para ir mutando su campo interno <code>casa</code> paso a paso.</li>
+                <li><code>Director.ConstruirCompleta()</code> ejecuta la misma receta exacta en ambos constructores produciendo resultados totalmente distintos.</li>
+              </ol>
+            </div>
+
+            <pre class="output-block mt-1">🏠 Casa [Paredes: Troncos de pino | Techo: Tejas de madera | Ventanas: 2 | Piscina: false]
+🏠 Casa [Paredes: Hormigón y cristal | Techo: Terraza solar | Ventanas: 12 | Piscina: true]</pre>
+
+            <div class="go-tip">
+              <div class="icon">🐹</div>
+              <div>
+                <h3>Nota idiomática en Go</h3>
+                <p>En Go, además del Builder clásico con Director o encadenamiento fluido (<code>b.ConParedes(...).ConTecho(...)</code>), es muy popular el patrón <strong>Functional Options</strong> (<code>NewServidor(ConPuerto(8080), ConTLS(true))</code>) para evitar constructores telescópicos cuando sólo hay una representación del producto.</p>
+              </div>
+            </div>
+
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/builder" target="_blank">📖 Teoría basada en refactoring.guru — Builder</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN CREACIONAL 4: PROTOTYPE
+         ===================================================================== -->
+    <div class="slide" id="p-prototype" data-toc="Prototype" data-toc-group="Creacionales" data-section="Creacionales · Prototype">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">1 / 3 · Teoría</span>
+        </div>
+        <h2 class="slide-title">Prototype</h2>
+        <p class="slide-subtitle">También llamado: Prototipo, Clon, Clone</p>
+
+        <div class="intent-box">
+          <span class="label">🎯 Propósito</span>
+          <p>Permite copiar objetos existentes de forma independiente a sus clases o estructuras concretas, delegando el proceso de clonación al propio objeto que se desea duplicar.</p>
+        </div>
+
+        <div class="two-cols">
+          <div class="glass-card problem-card">
+            <h3>😟 Problema</h3>
+            <p>Supón que tienes un objeto complejo configurado en memoria y necesitas crear una copia exacta de él. Si intentas copiarlo "desde fuera", tu código cliente primero debe conocer la estructura concreta para instanciarla (acoplándose a ella) y luego recorrer todos sus campos.</p>
+            <p>Peor aún: muchos campos pueden ser privados (no exportados en Go) e inaccesibles desde otros paquetes, o el código cliente sólo recibe el objeto a través de una interfaz general y ni siquiera sabe cuál es su tipo concreto real.</p>
+          </div>
+          <div class="glass-card solution-card">
+            <h3>💡 Solución</h3>
+            <p>El patrón <strong>Prototype</strong> declara una interfaz común (p. ej. <code>Prototipo</code>) con un método <code>Clonar()</code>. Cada estructura concreta implementa <code>Clonar()</code> creando una nueva instancia de su propio tipo y copiando todos sus campos internos (incluidos los privados y las estructuras anidadas).</p>
+            <p>Así, el cliente puede duplicar cualquier objeto o árbol de objetos llamando simplemente a <code>objeto.Clonar()</code>, o mantener un <strong>registro de prototipos</strong> preconfigurados listos para clonarse bajo demanda.</p>
+          </div>
+        </div>
+
+        <div class="analogy">
+          <div class="icon">🧬</div>
+          <div>
+            <h3>Analogía en el mundo real</h3>
+            <p>La <strong>división mitótica de una célula</strong> en biología: ningún agente externo ensambla una célula nueva átomo por átomo desde fuera; es la propia célula original (el <em>prototipo</em>) quien duplica su ADN e información interna para dar origen a un clon idéntico e independiente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Prototype">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">2 / 3 · Estructura</span>
+        </div>
+        <h2 class="slide-title">Prototype — Estructura y análisis</h2>
+
+        <div class="two-cols">
+          <div>
+            <pre class="uml">┌────────────────────┐        ┌────────────────────────────┐
+│    (3 Cliente)     │───────▶│ &lt;&lt;interface&gt;&gt; Prototipo    │
+│ copia := p.Clonar()│  usa   │       (1 Prototipo)        │
+└────────────────────┘        ├────────────────────────────┤
+                              │ + Clonar(): Prototipo      │
+                              └──────────────△─────────────┘
+                                     ┌───────┴────────┐
+                             ┌───────┴──────┐  ┌──────┴───────┐
+                             │   Archivo    │  │   Carpeta    │
+                             │ (2 Concreto) │  │ (2 Concreto) │
+                             ├──────────────┤  ├──────────────┤
+                             │ + Clonar()   │  │ + Clonar()   │
+                             └──────────────┘  └──────────────┘
+                                 devuelve `&amp;Archivo{...}` (copia profunda)</pre>
+            <div class="glass-card mt-1">
+              <h3>🔗 Relación con otros patrones</h3>
+              <ul>
+                <li><strong>Abstract Factory</strong> puede almacenar un catálogo de prototipos y clonarlos en lugar de usar <em>Factory Methods</em>.</li>
+                <li>Los diseños con árboles <strong>Composite</strong> o <strong>Decorator</strong> usan <strong>Prototype</strong> para clonar estructuras complejas enteras de una sola vez.</li>
+                <li>Puede servir como alternativa sencilla a <strong>Memento</strong> o para guardar copias de <strong>Command</strong> en un historial.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🧩 Participantes</h3>
+              <ol class="participants">
+                <li><strong>Interfaz Prototipo (<code>Prototipo</code>):</strong> declara el método de clonación (<code>Clonar()</code>) que retorna la propia abstracción.</li>
+                <li><strong>Prototipos Concretos (<code>Archivo</code>, <code>Carpeta</code>):</strong> implementan <code>Clonar()</code> copiando sus valores primitivos y duplicando recursivamente sus referencias (slices, mapas, punteros) para evitar efectos colaterales.</li>
+                <li><strong>Cliente:</strong> solicita una copia invocando <code>Clonar()</code> en cualquier objeto que cumpla la interfaz, o consulta un <strong>Registro de Prototipos</strong> por nombre.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-cols mt-1">
+          <div class="glass-card">
+            <h3>🧭 Aplicabilidad</h3>
+            <ul>
+              <li>Cuando tu código necesita copiar objetos pero no debe depender de sus tipos concretos (porque los recibe mediante una interfaz).</li>
+              <li>Cuando quieres evitar crear subclases que sólo difieren en cómo inicializan sus atributos, usando en su lugar un catálogo de prototipos preconfigurados.</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <h3>🛠️ Cómo implementarlo</h3>
+            <ol>
+              <li>Declara la interfaz <code>Prototipo</code> con el método <code>Clonar()</code>.</li>
+              <li>Implementa <code>Clonar()</code> en cada estructura concreta instanciando un nuevo objeto del mismo tipo y copiando todos sus campos (cuidando la <em>copia profunda</em> en punteros, slices y mapas).</li>
+              <li>Opcionalmente, crea un mapa o registro de prototipos frecuentes indexado por clave para clonarlos cuando el cliente los pida.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="pros-cons">
+          <div class="pros">
+            <h3>✅ Pros</h3>
+            <ul>
+              <li>Permite clonar objetos sin acoplarse a sus clases o estructuras concretas.</li>
+              <li>Evita repetir código de inicialización costoso y facilita duplicar estructuras jerárquicas complejas.</li>
+            </ul>
+          </div>
+          <div class="cons">
+            <h3>❌ Contras</h3>
+            <ul>
+              <li>Clonar objetos complejos con punteros compartidos o referencias circulares requiere implementar copias profundas (<em>deep copy</em>) cuidadosas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Prototype">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">3 / 3 · Go</span>
+        </div>
+        <h2 class="slide-title">Prototype en Go</h2>
+
+        <div class="two-cols-wide">
+          <div>
+            <pre class="code-block tall" data-lang="go" data-label="prototype/main.go">package main
+
+import "fmt"
+
+// 1. Interfaz Prototipo (declara el método de clonación)
+type Prototipo interface {
+	Clonar() Prototipo
+	Mostrar(indent string)
+}
+
+// 2. Prototipo Concreto A: Archivo
+type Archivo struct {
+	Nombre   string
+	Etiqueta []string // slice para demostrar copia profunda (deep copy)
+}
+
+func (a *Archivo) Mostrar(indent string) {
+	fmt.Printf("%s📄 %s (tags: %v)\n", indent, a.Nombre, a.Etiqueta)
+}
+
+func (a *Archivo) Clonar() Prototipo {
+	copiaTags := make([]string, len(a.Etiqueta))
+	copy(copiaTags, a.Etiqueta)
+	return &amp;Archivo{Nombre: a.Nombre + "_copia", Etiqueta: copiaTags}
+}
+
+// 2. Prototipo Concreto B: Carpeta (contiene otros Prototipos)
+type Carpeta struct {
+	Nombre    string
+	Elementos []Prototipo
+}
+
+func (c *Carpeta) Mostrar(indent string) {
+	fmt.Printf("%s📁 %s/\n", indent, c.Nombre)
+	for _, elem := range c.Elementos {
+		elem.Mostrar(indent + "   ")
+	}
+}
+
+func (c *Carpeta) Clonar() Prototipo {
+	clon := &amp;Carpeta{
+		Nombre:    c.Nombre + "_clon",
+		Elementos: make([]Prototipo, len(c.Elementos)),
+	}
+	for i, elem := range c.Elementos {
+		clon.Elementos[i] = elem.Clonar() // clona recursivamente sin saber el tipo concreto
+	}
+	return clon
+}
+
+func main() {
+	doc := &amp;Archivo{Nombre: "informe.pdf", Etiqueta: []string{"v1", "oficial"}}
+	orig := &amp;Carpeta{
+		Nombre:    "Proyecto",
+		Elementos: []Prototipo{doc, &amp;Archivo{Nombre: "datos.csv", Etiqueta: []string{"raw"}}},
+	}
+
+	// 3. El cliente clona la estructura completa a través de la interfaz Prototipo
+	copia := orig.Clonar()
+	doc.Etiqueta[0] = "MODIFICADO" // no afecta al clon gracias a la copia profunda
+
+	fmt.Println("--- Original (tras modificar doc) ---")
+	orig.Mostrar("")
+	fmt.Println("--- Clon independiente ---")
+	copia.Mostrar("")
+}</pre>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🔍 Explicación paso a paso</h3>
+              <ol>
+                <li><code>Prototipo</code> declara <code>Clonar() Prototipo</code>.</li>
+                <li>En <code>Archivo.Clonar()</code> creamos un nuevo slice con <code>make</code> y <code>copy</code> para hacer una <strong>copia profunda</strong> de <code>Etiqueta</code>.</li>
+                <li><code>Carpeta.Clonar()</code> recorre sus hijos <code>[]Prototipo</code> e invoca polimórficamente <code>elem.Clonar()</code> sin saber si cada elemento es un archivo o una subcarpeta.</li>
+                <li>Al mutar <code>doc.Etiqueta[0]</code> en el original, el clon permanece intacto.</li>
+              </ol>
+            </div>
+
+            <pre class="output-block mt-1">--- Original (tras modificar doc) ---
+📁 Proyecto/
+   📄 informe.pdf (tags: [MODIFICADO oficial])
+   📄 datos.csv (tags: [raw])
+--- Clon independiente ---
+📁 Proyecto_clon/
+   📄 informe.pdf_copia (tags: [v1 oficial])
+   📄 datos.csv_copia (tags: [raw])</pre>
+
+            <div class="go-tip">
+              <div class="icon">🐹</div>
+              <div>
+                <h3>Nota idiomática en Go</h3>
+                <p>En Go, asignar un struct por valor (<code>copia := *original</code>) realiza una <strong>copia superficial</strong> (<em>shallow copy</em>): los campos <code>slice</code>, <code>map</code> o punteros seguirán apuntando a la misma memoria subyacente. Por eso un método <code>Clonar()</code> explícito con <code>copy()</code> o <code>slices.Clone()</code> es esencial.</p>
+              </div>
+            </div>
+
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/prototype" target="_blank">📖 Teoría basada en refactoring.guru — Prototype</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN CREACIONAL 5: SINGLETON
+         ===================================================================== -->
+    <div class="slide" id="p-singleton" data-toc="Singleton" data-toc-group="Creacionales" data-section="Creacionales · Singleton">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">1 / 3 · Teoría</span>
+        </div>
+        <h2 class="slide-title">Singleton</h2>
+        <p class="slide-subtitle">También llamado: Instancia única</p>
+
+        <div class="intent-box">
+          <span class="label">🎯 Propósito</span>
+          <p>Garantiza que una estructura o clase tenga una única instancia en toda la ejecución del programa y proporciona un punto de acceso global y seguro a dicha instancia.</p>
+        </div>
+
+        <div class="two-cols">
+          <div class="glass-card problem-card">
+            <h3>😟 Problema</h3>
+            <p>El patrón Singleton aborda dos problemas a la vez:</p>
+            <ol>
+              <li><strong>Garantizar una única instancia:</strong> recursos compartidos como un pool de base de datos, un registro de configuración o un sistema de archivos no deben instanciarse decenas de veces desperdiciando memoria o desincronizando el estado.</li>
+              <li><strong>Acceso global controlado:</strong> una variable global ordinaria permite acceder al objeto desde cualquier lugar, pero es peligrosa porque cualquier paquete podría sobrescribirla accidentalmente o provocar condiciones de carrera entre hilos/goroutines.</li>
+            </ol>
+          </div>
+          <div class="glass-card solution-card">
+            <h3>💡 Solución</h3>
+            <p>Ocultar o restringir la construcción directa del tipo y exponer una función de acceso global (como <code>ObtenerBD()</code>) que actúa como único punto de entrada.</p>
+            <p>La primera vez que se invoca esta función, se crea el objeto de forma perezosa (<em>lazy initialization</em>) con bloqueo seguro para concurrencia y se guarda en una variable privada del paquete; todas las llamadas posteriores devuelven exactamente la misma referencia almacenada en caché.</p>
+          </div>
+        </div>
+
+        <div class="analogy">
+          <div class="icon">🏛️</div>
+          <div>
+            <h3>Analogía en el mundo real</h3>
+            <p>El <strong>Gobierno oficial de un país</strong> es un Singleton natural: un país sólo puede tener un gobierno activo a la vez. Sin importar qué ciudadanos o instituciones interactúen con él, la figura "Gobierno de Colombia" funciona como el punto de acceso global que refiere siempre a la misma entidad institucional.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Singleton">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">2 / 3 · Estructura</span>
+        </div>
+        <h2 class="slide-title">Singleton — Estructura y análisis</h2>
+
+        <div class="two-cols">
+          <div>
+            <pre class="uml">┌────────────────────┐          ┌──────────────────────────────────┐
+│      Cliente       │─────────▶│          ConexionBD              │
+│ bd1 := ObtenerBD() │  invoca  │         (1 Singleton)            │
+│ bd2 := ObtenerBD() │          ├──────────────────────────────────┤
+└────────────────────┘          │ - instancia: *ConexionBD (priv)  │
+   bd1 == bd2 (true)            │ - once: sync.Once        (priv)  │
+                                ├──────────────────────────────────┤
+                                │ + ObtenerBD(): *ConexionBD       │
+                                │ + Ejecutar(sql string)           │
+                                └──────────────────────────────────┘</pre>
+            <div class="glass-card mt-1">
+              <h3>🔗 Relación con otros patrones</h3>
+              <ul>
+                <li>Una estructura <strong>Facade</strong> suele convertirse en <strong>Singleton</strong> porque un único objeto fachada basta en casi todos los casos.</li>
+                <li>A diferencia de <strong>Flyweight</strong> (que puede tener múltiples instancias inmutables con estado intrínseco distinto), <strong>Singleton</strong> tiene una sola instancia que suele ser mutable.</li>
+                <li><strong>Abstract Factory</strong>, <strong>Builder</strong> y <strong>Prototype</strong> frecuentemente se implementan como <strong>Singletons</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🧩 Participantes</h3>
+              <ol class="participants">
+                <li><strong>Singleton (<code>ConexionBD</code> + <code>ObtenerBD()</code>):</strong> mantiene en variables privadas a nivel de paquete la referencia única (<code>instancia</code>) y el mecanismo de sincronización (<code>sync.Once</code>). La función pública <code>ObtenerBD()</code> garantiza que la inicialización ocurra una sola vez incluso ante miles de goroutines concurrentes.</li>
+              </ol>
+            </div>
+            <div class="glass-card mt-1">
+              <h3>🛠️ Cómo implementarlo</h3>
+              <ol>
+                <li>Declara una variable privada en el paquete para guardar el puntero a la instancia única y un <code>sync.Once</code>.</li>
+                <li>Escribe la función pública <code>ObtenerInstancia()</code> que inicializa el objeto dentro de <code>once.Do(func() { ... })</code> y retorna la variable privada.</li>
+                <li>Sustituye en el código cliente las creaciones directas por llamadas a <code>ObtenerInstancia()</code>.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="two-cols mt-1">
+          <div class="glass-card">
+            <h3>🧭 Aplicabilidad</h3>
+            <ul>
+              <li>Cuando un recurso del programa debe tener estrictamente una única instancia compartida por todos los componentes (p. ej. gestor de conexión a BD, logger centralizado, configuración en memoria).</li>
+              <li>Cuando necesitas reemplazar variables globales desprotegidas por un punto de acceso con inicialización diferida y protegida contra escritura externa.</li>
+            </ul>
+          </div>
+          <div class="pros-cons" style="margin-top: 0;">
+            <div class="pros">
+              <h3>✅ Pros</h3>
+              <ul>
+                <li>Certeza absoluta de tener una única instancia y un punto de acceso global conocido.</li>
+                <li>Se inicializa solo cuando se solicita por primera vez (<em>lazy initialization</em>).</li>
+              </ul>
+            </div>
+            <div class="cons">
+              <h3>❌ Contras</h3>
+              <ul>
+                <li>Vulnera el <strong>Principio de Responsabilidad Única (SRP)</strong> al resolver dos problemas a la vez.</li>
+                <li>Puede ocultar acoplamiento global excesivo y dificultar las pruebas unitarias (estado compartido entre tests).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide" data-section="Creacionales · Singleton">
+      <span class="slide-number-badge"></span>
+      <div class="slide-inner">
+        <div class="pattern-head">
+          <span class="cat-badge creacional">🏭 Creacional</span>
+          <span class="part-badge">3 / 3 · Go</span>
+        </div>
+        <h2 class="slide-title">Singleton en Go</h2>
+
+        <div class="two-cols-wide">
+          <div>
+            <pre class="code-block tall" data-lang="go" data-label="singleton/main.go">package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+// 1. Estructura Singleton (no exportada o con inicialización controlada)
+type ConexionBD struct {
+	DSN       string
+	Consultas int
+}
+
+var (
+	instancia *ConexionBD
+	once      sync.Once // garantiza ejecución única y segura entre goroutines
+)
+
+// ObtenerBD es el punto de acceso global al Singleton.
+func ObtenerBD() *ConexionBD {
+	once.Do(func() {
+		fmt.Println("🔌 [sync.Once] Creando la ÚNICA conexión a la base de datos...")
+		instancia = &amp;ConexionBD{DSN: "postgres://localhost:5432/produccion"}
+	})
+	return instancia
+}
+
+func (db *ConexionBD) Ejecutar(sql string) {
+	db.Consultas++
+	fmt.Printf("   [Consulta #%d en %s] -&gt; %s\n", db.Consultas, db.DSN, sql)
+}
+
+func main() {
+	// Primera llamada: inicializa la instancia única
+	bd1 := ObtenerBD()
+	bd1.Ejecutar("SELECT * FROM usuarios")
+
+	// Segunda llamada: reutiliza exactamente la misma instancia
+	bd2 := ObtenerBD()
+	bd2.Ejecutar("INSERT INTO logs VALUES ('login')")
+
+	fmt.Printf("¿bd1 y bd2 apuntan al mismo objeto? %v (total consultas: %d)\n",
+		bd1 == bd2, bd1.Consultas)
+}</pre>
+          </div>
+          <div>
+            <div class="glass-card">
+              <h3>🔍 Explicación paso a paso</h3>
+              <ol>
+                <li><code>instancia</code> y <code>once</code> son variables privadas del paquete (minúscula inicial).</li>
+                <li><code>ObtenerBD()</code> envuelve la creación dentro de <code>once.Do(...)</code>: la biblioteca estándar de Go garantiza con operaciones atómicas y mutex interno que esa función anónima se ejecute <strong>exactamente una vez</strong>, incluso si 1000 goroutines llaman a <code>ObtenerBD()</code> al mismo tiempo.</li>
+                <li><code>bd1 == bd2</code> evalúa a <code>true</code> y el contador de consultas refleja que ambas variables apuntan a la misma dirección de memoria.</li>
+              </ol>
+            </div>
+
+            <pre class="output-block mt-1">🔌 [sync.Once] Creando la ÚNICA conexión a la base de datos...
+   [Consulta #1 en postgres://localhost:5432/produccion] -&gt; SELECT * FROM usuarios
+   [Consulta #2 en postgres://localhost:5432/produccion] -&gt; INSERT INTO logs VALUES ('login')
+¿bd1 y bd2 apuntan al mismo objeto? true (total consultas: 2)</pre>
+
+            <div class="go-tip">
+              <div class="icon">🐹</div>
+              <div>
+                <h3>Nota idiomática en Go</h3>
+                <p>Olvídate del complejo patrón <em>double-checked locking</em> manual de Java/C++. En Go, <code>sync.Once</code> (o <code>sync.OnceValue</code> desde Go 1.21) es la forma estándar, ultrarrápida y 100% libre de condiciones de carrera para implementar un Singleton perezoso.</p>
+              </div>
+            </div>
+
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/singleton" target="_blank">📖 Teoría basada en refactoring.guru — Singleton</a>
+          </div>
+        </div>
+      </div>
+    </div>

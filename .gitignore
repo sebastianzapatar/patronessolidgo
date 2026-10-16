@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Binarios y artefactos de Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# IDEs y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

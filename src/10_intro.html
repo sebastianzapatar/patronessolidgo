@@ -1,0 +1,140 @@
+
+    <!-- ===================== PORTADA ===================== -->
+    <div class="slide" id="inicio" data-toc="Portada" data-toc-group="Introducción" data-section="Introducción">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner center">
+            <div style="margin-bottom: 1.5em;">
+                <svg width="96" height="96" viewBox="0 0 96 96" fill="none">
+                    <rect x="8" y="8" width="34" height="34" rx="8" fill="#6c5ce7" opacity="0.85"/>
+                    <rect x="54" y="8" width="34" height="34" rx="17" fill="#a29bfe" opacity="0.75"/>
+                    <rect x="8" y="54" width="34" height="34" rx="17" fill="#00cec9" opacity="0.6"/>
+                    <rect x="54" y="54" width="34" height="34" rx="8" fill="#fd79a8" opacity="0.6"/>
+                    <path d="M42 25 H54 M25 42 V54 M71 42 V54 M42 71 H54" stroke="#e8e8f0" stroke-width="2.5" opacity="0.5"/>
+                </svg>
+            </div>
+            <h1 class="hero-title">Patrones de Diseño en Go</h1>
+            <p class="hero-subtitle">Soluciones probadas a problemas recurrentes del diseño de software</p>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Lenguajes y Compiladores — 2026-2</p>
+            <div class="tags">
+                <span class="tag">SOLID</span>
+                <span class="tag">Creacionales</span>
+                <span class="tag">Estructurales</span>
+                <span class="tag">Comportamiento</span>
+                <span class="tag">Go idiomático</span>
+                <span class="tag">Interfaces</span>
+                <span class="tag">Composición</span>
+            </div>
+            <div class="hero-meta" style="justify-content: center; margin-top: 2em;">
+                <span>🧱 5 principios SOLID</span>
+                <span>🧩 22 patrones GoF</span>
+                <span>🐹 Ejemplos ejecutables en Go</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== AGENDA ===================== -->
+    <div class="slide" data-section="Introducción · Agenda">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">Agenda de la clase</h2>
+            <p class="slide-subtitle">De los principios a los patrones: primero el <em>por qué</em>, después el <em>cómo</em></p>
+
+            <div class="cards-grid-3">
+                <div class="glass-card">
+                    <h3>0 · Go para POO</h3>
+                    <p>Cómo se "hace orientación a objetos" en Go sin clases ni herencia: <strong>structs, métodos, interfaces implícitas y embedding</strong>.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>1 · Principios SOLID</h3>
+                    <p>Las 5 reglas de diseño que sostienen a casi todos los patrones: <strong>S·O·L·I·D</strong>, cada una con un ejemplo en Go.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>2 · ¿Qué es un patrón?</h3>
+                    <p>Definición, historia (GoF), por qué aprenderlos, críticas y <strong>clasificación</strong> en tres familias.</p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-3);">
+                    <h3 style="color: var(--accent-3);">3 · Creacionales (5)</h3>
+                    <p>Factory Method · Abstract Factory · Builder · Prototype · Singleton</p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-4);">
+                    <h3 style="color: var(--accent-4);">4 · Estructurales (7)</h3>
+                    <p>Adapter · Bridge · Composite · Decorator · Facade · Flyweight · Proxy</p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-5);">
+                    <h3 style="color: var(--accent-5);">5 · Comportamiento (10)</h3>
+                    <p>Chain of Responsibility · Command · Iterator · Mediator · Memento · Observer · State · Strategy · Template Method · Visitor</p>
+                </div>
+            </div>
+
+            <div class="go-tip">
+                <div class="icon">🗂️</div>
+                <div>
+                    <h3>Cómo está organizado cada patrón</h3>
+                    <p>Tres slides: <strong>① Teoría</strong> (propósito, problema, solución, analogía) → <strong>② Estructura</strong> (diagrama, participantes, cuándo usarlo, pros y contras) → <strong>③ Go</strong> (código ejecutable y su salida). Todo el código está en la carpeta <code>ejemplos/</code> y se ejecuta con <code>go run ./&lt;categoria&gt;/&lt;patron&gt;</code>. Pulsa <strong>M</strong> para abrir el índice.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== GO PARA POO ===================== -->
+    <div class="slide" id="go-poo" data-toc="Go sin clases" data-toc-group="Introducción" data-section="Introducción · Go para POO">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title gradient-2">Go: orientación a objetos sin clases</h2>
+            <p class="slide-subtitle">Los patrones GoF se escribieron pensando en C++/Smalltalk. En Go se expresan con otras herramientas</p>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="go-basico.go">// 1. struct = datos (el "estado" del objeto)
+type Animal struct {
+    Nombre string
+}
+
+// 2. Método = función con receptor
+func (a *Animal) Presentarse() string {
+    return "Soy " + a.Nombre
+}
+
+// 3. Interfaz = contrato. Se implementa IMPLÍCITAMENTE:
+//    basta con tener los métodos (no existe "implements")
+type Hablador interface {
+    Hablar() string
+}
+
+// 4. Embedding = composición que "promueve" métodos
+type Perro struct {
+    Animal        // Perro obtiene Presentarse()
+    Raza   string
+}
+
+func (p *Perro) Hablar() string { return "¡Guau!" }
+
+// 5. Funciones de primera clase
+type Saludo func(string) string
+
+func main() {
+    p := &amp;Perro{Animal{"Firulais"}, "Criollo"}
+    var h Hablador = p            // Perro satisface Hablador
+    fmt.Println(p.Presentarse(), h.Hablar())
+}</pre>
+                <div>
+                    <table class="compare-table" style="margin-top: 0;">
+                        <tr><th>POO clásica</th><th>En Go</th></tr>
+                        <tr><td>Clase</td><td><code>struct</code> + métodos</td></tr>
+                        <tr><td>Constructor</td><td>función <code>NewX(...)</code></td></tr>
+                        <tr><td>Interfaz explícita</td><td>interfaz <strong>implícita</strong> (duck typing estático)</td></tr>
+                        <tr><td>Herencia</td><td><strong>no existe</strong> → composición / embedding</td></tr>
+                        <tr><td>Clase abstracta</td><td>interfaz + struct base embebido</td></tr>
+                        <tr><td><code>private</code>/<code>public</code></td><td>minúscula / Mayúscula (por paquete)</td></tr>
+                        <tr><td>Clase con 1 método</td><td>a menudo basta una <code>func</code></td></tr>
+                    </table>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Proverbio de Go</h3>
+                            <p><em>"Acepta interfaces, devuelve structs"</em> y <em>"cuanto más grande la interfaz, más débil la abstracción"</em>. Verás estas dos ideas en casi todos los patrones.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

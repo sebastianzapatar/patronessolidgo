@@ -1,0 +1,172 @@
+
+    <!-- ===================== ¿QUÉ ES UN PATRÓN? ===================== -->
+    <div class="slide" id="que-es" data-toc="¿Qué es un patrón?" data-toc-group="Patrones de diseño" data-section="Patrones · ¿Qué es un patrón?">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">¿Qué es un patrón de diseño?</h2>
+            <p class="slide-subtitle">Soluciones típicas a problemas comunes en el diseño de software</p>
+
+            <div class="intent-box">
+                <span class="label">📐 Definición</span>
+                <p>Un patrón de diseño es como un <strong>plano prefabricado</strong> que puedes personalizar para resolver un problema de diseño que se repite en tu código. <strong>No es un fragmento de código</strong> que se copia y pega, sino un <strong>concepto general</strong> que describe cómo resolver un problema concreto.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card">
+                    <h3>🍳 Patrón vs. Algoritmo</h3>
+                    <p>A menudo se confunden porque ambos describen soluciones típicas. Pero:</p>
+                    <ul>
+                        <li>Un <strong>algoritmo</strong> es como una <strong>receta de cocina</strong>: pasos claros y concretos para llegar a un objetivo (ej. Dijkstra).</li>
+                        <li>Un <strong>patrón</strong> es como un <strong>plano de arquitecto</strong>: ves el resultado y sus características, pero el orden exacto de implementación depende de ti.</li>
+                    </ul>
+                    <p>Por eso, el mismo patrón aplicado en dos programas distintos puede verse muy diferente en el código.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>📋 ¿Qué contiene la descripción de un patrón?</h3>
+                    <ol>
+                        <li><strong>Propósito</strong>: describe brevemente el problema y la solución.</li>
+                        <li><strong>Motivación</strong>: explica en detalle el problema y cómo el patrón lo resuelve.</li>
+                        <li><strong>Estructura</strong>: muestra cada parte del patrón y cómo se relacionan (diagrama de clases).</li>
+                        <li><strong>Ejemplo de código</strong>: en algún lenguaje popular, para facilitar la comprensión.</li>
+                    </ol>
+                    <p>Además: <strong>aplicabilidad</strong>, <strong>pasos de implementación</strong> y <strong>relaciones con otros patrones</strong>. Así está organizada cada sección de esta clase.</p>
+                </div>
+            </div>
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/what-is-pattern" target="_blank">📖 Teoría basada en refactoring.guru — ¿Qué es un patrón de diseño?</a>
+        </div>
+    </div>
+
+    <!-- ===================== HISTORIA, POR QUÉ, CRÍTICAS ===================== -->
+    <div class="slide" id="historia" data-toc="Historia, ventajas y críticas" data-toc-group="Patrones de diseño" data-section="Patrones · Historia y críticas">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">Historia, ventajas y críticas</h2>
+            <p class="slide-subtitle">Los patrones no se inventaron: se <em>descubrieron</em> observando soluciones que se repetían</p>
+
+            <div class="cards-grid-3">
+                <div class="glass-card">
+                    <h3>📜 Historia</h3>
+                    <ul>
+                        <li><strong>1977</strong> — El arquitecto <strong>Christopher Alexander</strong> publica <em>A Pattern Language</em>: un "lenguaje" de patrones para diseñar ciudades y edificios (¿qué tan altas deben ser las ventanas?, ¿cuántos niveles debe tener un edificio?).</li>
+                        <li><strong>1994</strong> — Erich Gamma, John Vlissides, Ralph Johnson y Richard Helm aplican la idea al software en <em>Design Patterns: Elements of Reusable Object-Oriented Software</em>, con <strong>23 patrones</strong>.</li>
+                        <li>Por el largo nombre, se le conoce como <strong>"el libro de la Banda de los Cuatro"</strong> (<em>Gang of Four</em>, GoF).</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>✅ ¿Por qué aprenderlos?</h3>
+                    <ul>
+                        <li>Son un <strong>kit de herramientas</strong> de soluciones probadas a problemas comunes. Aunque nunca te topes con estos problemas, conocerlos te enseña a resolver problemas con <strong>principios de diseño orientado a objetos</strong>.</li>
+                        <li>Definen un <strong>lenguaje común</strong> para el equipo: basta decir <em>"usa un Observer aquí"</em> y todos entienden la idea sin explicar clases y métodos.</li>
+                        <li>Muchos frameworks y librerías los usan: reconocerlos te ayuda a <strong>leer código ajeno</strong>.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>⚠️ Críticas</h3>
+                    <ul>
+                        <li><strong>Parches para un lenguaje débil</strong>: algunos patrones existen porque el lenguaje carece de una abstracción. Ej: Strategy puede ser simplemente una <strong>función anónima</strong> en lenguajes modernos (¡como Go!).</li>
+                        <li><strong>Soluciones ineficientes</strong>: aplicarlos al pie de la letra, sin adaptarlos al contexto.</li>
+                        <li><strong>Uso injustificado</strong>: <em>"Si todo lo que tienes es un martillo, todo parece un clavo"</em>. El novato quiere aplicar patrones en todas partes, incluso donde un código simple bastaría.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="go-tip">
+                <div class="icon">🐹</div>
+                <div>
+                    <h3>Patrones en Go: con criterio</h3>
+                    <p>La comunidad Go valora la <strong>simplicidad</strong>. Varios patrones se reducen a una interfaz pequeña o a una función de primera clase. En cada patrón veremos su forma clásica y <strong>su forma idiomática en Go</strong>. Usa un patrón cuando resuelva un problema real, no para "decorar" el código.</p>
+                </div>
+            </div>
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/history" target="_blank">📖 Teoría basada en refactoring.guru — Historia, ¿Por qué aprender?, Críticas</a>
+        </div>
+    </div>
+
+    <!-- ===================== CLASIFICACIÓN ===================== -->
+    <div class="slide" id="clasificacion" data-toc="Clasificación de los patrones" data-toc-group="Patrones de diseño" data-section="Patrones · Clasificación">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">Clasificación de los patrones</h2>
+            <p class="slide-subtitle">Según su escala y, sobre todo, según su <strong>propósito</strong></p>
+
+            <div class="glass-card mb-1">
+                <h3>📏 Por nivel / escala</h3>
+                <p>Como en la construcción de carreteras: puedes hacer más segura una intersección con un <strong>semáforo</strong> o con un <strong>intercambiador de varios niveles</strong>. Igual, los patrones varían en complejidad:</p>
+                <div class="uml" style="margin-top: 0.8em;">  bajo nivel ◀────────────────────────────────────────────────────▶ alto nivel
+  IDIOMS                       PATRONES DE DISEÑO                 PATRONES DE ARQUITECTURA
+  (propios de un lenguaje,     (GoF: soluciones a nivel de        (estructuran la aplicación completa,
+   ej. "comma ok" en Go,        objetos y sus relaciones)          ej. MVC, hexagonal, microservicios)
+   defer para liberar)</div>
+            </div>
+
+            <div class="cards-grid-3">
+                <div class="glass-card" style="border-top: 3px solid var(--accent-3);">
+                    <span class="cat-badge creacional">🏭 Creacionales · 5</span>
+                    <h3 class="mt-1" style="color: var(--accent-3);">¿Cómo se CREAN los objetos?</h3>
+                    <p>Proporcionan <strong>mecanismos de creación de objetos</strong> que incrementan la flexibilidad y la reutilización del código existente.</p>
+                    <p>Ocultan la lógica de creación: el cliente pide un objeto sin acoplarse a su tipo concreto (<code>new</code> / literales dispersos por el código).</p>
+                    <p style="font-size: 0.9rem;"><strong>Factory Method · Abstract Factory · Builder · Prototype · Singleton</strong></p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-4);">
+                    <span class="cat-badge estructural">🧱 Estructurales · 7</span>
+                    <h3 class="mt-1" style="color: var(--accent-4);">¿Cómo se COMPONEN los objetos?</h3>
+                    <p>Explican cómo <strong>ensamblar objetos y clases en estructuras más grandes</strong>, manteniendo la flexibilidad y eficiencia de la estructura.</p>
+                    <p>Se apoyan en la <strong>composición</strong> y en las interfaces para envolver, adaptar o agrupar objetos.</p>
+                    <p style="font-size: 0.9rem;"><strong>Adapter · Bridge · Composite · Decorator · Facade · Flyweight · Proxy</strong></p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-5);">
+                    <span class="cat-badge comportamiento">🧠 Comportamiento · 10</span>
+                    <h3 class="mt-1" style="color: var(--accent-5);">¿Cómo se COMUNICAN los objetos?</h3>
+                    <p>Se encargan de la <strong>comunicación efectiva</strong> y de la <strong>asignación de responsabilidades</strong> entre objetos.</p>
+                    <p>Tratan sobre algoritmos, flujos de control y quién hace qué y cuándo.</p>
+                    <p style="font-size: 0.9rem;"><strong>Chain of Responsibility · Command · Iterator · Mediator · Memento · Observer · State · Strategy · Template Method · Visitor</strong></p>
+                </div>
+            </div>
+            <div class="warn-box">
+                <h3>📌 Nota: ¿22 o 23?</h3>
+                <p>El libro GoF tiene 23 patrones; refactoring.guru cubre 22 (omite <strong>Interpreter</strong>). Interpreter es justamente el patrón de los <strong>compiladores</strong>: representa una gramática como un árbol (AST) de objetos — lo veremos reflejado en <strong>Composite</strong> y <strong>Visitor</strong>.</p>
+            </div>
+            <a class="source-link" href="https://refactoring.guru/es/design-patterns/classification" target="_blank">📖 Teoría basada en refactoring.guru — Clasificación de los patrones</a>
+        </div>
+    </div>
+
+    <!-- ===================== MAPA DEL CATÁLOGO ===================== -->
+    <div class="slide" id="catalogo" data-toc="Mapa del catálogo" data-toc-group="Patrones de diseño" data-section="Patrones · Catálogo">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">Mapa del catálogo</h2>
+            <p class="slide-subtitle">Haz clic en cualquier patrón para saltar a su explicación</p>
+
+            <h3 style="color: var(--accent-3);">🏭 Creacionales</h3>
+            <div class="pattern-index" style="margin-top: 0.4em;">
+                <div class="item" data-goto="p-factory-method"><strong>Factory Method</strong><span>Delegar en subtipos qué objeto crear</span></div>
+                <div class="item" data-goto="p-abstract-factory"><strong>Abstract Factory</strong><span>Familias de objetos relacionados</span></div>
+                <div class="item" data-goto="p-builder"><strong>Builder</strong><span>Construir objetos complejos paso a paso</span></div>
+                <div class="item" data-goto="p-prototype"><strong>Prototype</strong><span>Clonar objetos existentes</span></div>
+                <div class="item" data-goto="p-singleton"><strong>Singleton</strong><span>Una única instancia con acceso global</span></div>
+            </div>
+
+            <h3 class="mt-1" style="color: var(--accent-4);">🧱 Estructurales</h3>
+            <div class="pattern-index" style="margin-top: 0.4em;">
+                <div class="item" data-goto="p-adapter"><strong>Adapter</strong><span>Hacer compatibles interfaces distintas</span></div>
+                <div class="item" data-goto="p-bridge"><strong>Bridge</strong><span>Separar abstracción e implementación</span></div>
+                <div class="item" data-goto="p-composite"><strong>Composite</strong><span>Tratar árboles como objetos individuales</span></div>
+                <div class="item" data-goto="p-decorator"><strong>Decorator</strong><span>Añadir comportamiento envolviendo</span></div>
+                <div class="item" data-goto="p-facade"><strong>Facade</strong><span>Interfaz simple para un subsistema</span></div>
+                <div class="item" data-goto="p-flyweight"><strong>Flyweight</strong><span>Compartir estado para ahorrar memoria</span></div>
+                <div class="item" data-goto="p-proxy"><strong>Proxy</strong><span>Sustituto que controla el acceso</span></div>
+            </div>
+
+            <h3 class="mt-1" style="color: var(--accent-5);">🧠 Comportamiento</h3>
+            <div class="pattern-index" style="margin-top: 0.4em;">
+                <div class="item" data-goto="p-chain-of-responsibility"><strong>Chain of Responsibility</strong><span>Pasar la solicitud por una cadena</span></div>
+                <div class="item" data-goto="p-command"><strong>Command</strong><span>Convertir una solicitud en objeto</span></div>
+                <div class="item" data-goto="p-iterator"><strong>Iterator</strong><span>Recorrer sin exponer la estructura</span></div>
+                <div class="item" data-goto="p-mediator"><strong>Mediator</strong><span>Centralizar la comunicación</span></div>
+                <div class="item" data-goto="p-memento"><strong>Memento</strong><span>Guardar y restaurar estados</span></div>
+                <div class="item" data-goto="p-observer"><strong>Observer</strong><span>Suscripción a eventos</span></div>
+                <div class="item" data-goto="p-state"><strong>State</strong><span>Cambiar comportamiento según el estado</span></div>
+                <div class="item" data-goto="p-strategy"><strong>Strategy</strong><span>Algoritmos intercambiables</span></div>
+                <div class="item" data-goto="p-template-method"><strong>Template Method</strong><span>Esqueleto de algoritmo con pasos variables</span></div>
+                <div class="item" data-goto="p-visitor"><strong>Visitor</strong><span>Operaciones nuevas sin cambiar los tipos</span></div>
+            </div>
+        </div>
+    </div>

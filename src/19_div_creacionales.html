@@ -1,0 +1,28 @@
+
+    <!-- ===================== DIVISOR: CREACIONALES ===================== -->
+    <div class="slide" id="sec-creacionales" data-section="Patrones creacionales">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner center">
+            <div class="section-icon">🏭</div>
+            <p class="section-number">Parte 3 · 5 patrones</p>
+            <h1 class="hero-title" style="background: var(--gradient-2); -webkit-background-clip: text; background-clip: text;">Patrones Creacionales</h1>
+            <p class="hero-subtitle">Mecanismos de creación de objetos que incrementan la flexibilidad y la reutilización del código</p>
+            <div class="cards-grid-2" style="text-align: left; max-width: 950px; margin: 2em auto 0;">
+                <div class="glass-card">
+                    <h3>❓ El problema común</h3>
+                    <p>Crear objetos directamente con literales (<code>&amp;MySQL{...}</code>) en todo el código <strong>acopla</strong> al cliente a tipos concretos. Cambiar el tipo implica tocar muchos lugares.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>💡 La idea común</h3>
+                    <p><strong>Encapsular el "qué" y el "cómo" de la creación</strong>: el cliente pide un objeto a través de una abstracción y no sabe (ni le importa) qué tipo concreto recibe.</p>
+                </div>
+            </div>
+            <div class="tags">
+                <span class="tag" data-goto="p-factory-method" style="cursor:pointer">Factory Method</span>
+                <span class="tag" data-goto="p-abstract-factory" style="cursor:pointer">Abstract Factory</span>
+                <span class="tag" data-goto="p-builder" style="cursor:pointer">Builder</span>
+                <span class="tag" data-goto="p-prototype" style="cursor:pointer">Prototype</span>
+                <span class="tag" data-goto="p-singleton" style="cursor:pointer">Singleton</span>
+            </div>
+        </div>
+    </div>

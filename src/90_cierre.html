@@ -1,0 +1,57 @@
+
+    <!-- ===================== GUÍA DE DECISIÓN Y CIERRE ===================== -->
+    <div class="slide" id="resumen" data-toc="Guía de decisión" data-toc-group="Cierre" data-section="Cierre · Guía rápida">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <h2 class="slide-title">¿Qué patrón elijo? — Guía rápida</h2>
+            <p class="slide-subtitle">Parte siempre del <strong>problema</strong>, nunca del patrón</p>
+
+            <table class="compare-table">
+                <tr><th>Si tu problema es...</th><th>Mira primero</th><th>En Go suele verse como...</th></tr>
+                <tr><td>No quiero acoplarme al constructor concreto</td><td><span class="badge teal">Factory Method</span> <span class="badge teal">Abstract Factory</span></td><td>Función <code>NewX(...) Interfaz</code> o interfaz con métodos de creación</td></tr>
+                <tr><td>Construir un objeto con muchas opciones</td><td><span class="badge teal">Builder</span></td><td>Builder fluido o patrón <em>Functional Options</em> (<code>WithTimeout(...)</code>)</td></tr>
+                <tr><td>Copiar un objeto sin depender de su tipo</td><td><span class="badge teal">Prototype</span></td><td>Método <code>Clonar() Interfaz</code></td></tr>
+                <tr><td>Una única instancia compartida</td><td><span class="badge teal">Singleton</span></td><td><code>sync.Once</code> + función de paquete (o mejor: inyectar la dependencia)</td></tr>
+                <tr><td>Una librería externa tiene otra interfaz</td><td><span class="badge red">Adapter</span></td><td>Struct pequeño que envuelve al servicio y traduce la llamada</td></tr>
+                <tr><td>Dos dimensiones que crecen por separado (M×N)</td><td><span class="badge red">Bridge</span></td><td>Struct de abstracción con un campo interfaz de implementación</td></tr>
+                <tr><td>Árboles (carpetas, menús, AST de un compilador)</td><td><span class="badge red">Composite</span> <span class="badge yellow">Visitor</span></td><td>Interfaz común para hojas y nodos compuestos; <code>Aceptar(Visitor)</code></td></tr>
+                <tr><td>Añadir logging, métricas, auth o caché sin tocar la lógica</td><td><span class="badge red">Decorator</span> <span class="badge red">Proxy</span> <span class="badge yellow">Chain</span></td><td>Wrapper que recibe y devuelve la misma interfaz (middleware HTTP)</td></tr>
+                <tr><td>Un subsistema tiene demasiadas piezas para el cliente</td><td><span class="badge red">Facade</span></td><td>Struct de alto nivel con 1–3 métodos claros</td></tr>
+                <tr><td>Cambiar un algoritmo en tiempo de ejecución</td><td><span class="badge yellow">Strategy</span> <span class="badge yellow">Template Method</span></td><td>Interfaz de 1 método o directamente un <code>func(...)</code></td></tr>
+                <tr><td>El comportamiento cambia según el estado interno</td><td><span class="badge yellow">State</span></td><td>Campo <code>estado Estado</code> que se reemplaza en cada transición</td></tr>
+                <tr><td>Encolar, registrar o deshacer operaciones</td><td><span class="badge yellow">Command</span> <span class="badge yellow">Memento</span></td><td>Struct con <code>Ejecutar()</code> / <code>Deshacer()</code> o snapshot inmutable</td></tr>
+                <tr><td>Avisar a varios interesados cuando algo pasa</td><td><span class="badge yellow">Observer</span> <span class="badge yellow">Mediator</span></td><td>Lista de suscriptores o canales de Go (<code>chan Evento</code>)</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== CIERRE ===================== -->
+    <div class="slide" id="fin" data-toc="Cierre y recursos" data-toc-group="Cierre" data-section="Cierre">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner center">
+            <div class="section-icon">🐹✨</div>
+            <h1 class="hero-title">¡Gracias!</h1>
+            <p class="hero-subtitle">Principios SOLID + 22 Patrones de Diseño en Go</p>
+
+            <div class="cards-grid-3" style="text-align: left; max-width: 1050px; margin: 2em auto;">
+                <div class="glass-card">
+                    <h3>🧱 SOLID primero</h3>
+                    <p>Diseña con responsabilidades claras, interfaces pequeñas que define el consumidor e inyección de dependencias por constructor.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>🧩 Patrones con criterio</h3>
+                    <p>Son un <strong>vocabulario</strong> y un catálogo de ideas, no una lista de compras. En Go, la solución más simple suele ser la mejor.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>💻 Practica con el código</h3>
+                    <p>Todos los ejemplos están en <code>ejemplos/</code>. Modifícalos, añade un nuevo producto, decorador o visitante y ejecuta <code>go run</code>.</p>
+                </div>
+            </div>
+
+            <div class="tags">
+                <a class="tag" href="https://refactoring.guru/es/design-patterns" target="_blank" style="text-decoration:none;">📖 refactoring.guru — Patrones de Diseño</a>
+                <a class="tag" href="https://refactoring.guru/es/design-patterns/go" target="_blank" style="text-decoration:none;">🐹 refactoring.guru — Patrones en Go</a>
+                <a class="tag" href="https://www.freecodecamp.org/espanol/news/los-principios-solid-explicados-en-espanol/" target="_blank" style="text-decoration:none;">🧱 freeCodeCamp — Principios SOLID</a>
+            </div>
+        </div>
+    </div>

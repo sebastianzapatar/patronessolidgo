@@ -1,0 +1,704 @@
+
+    <!-- ===================== SOLID: INTRO ===================== -->
+    <div class="slide" id="solid" data-toc="SOLID: introducción" data-toc-group="Principios SOLID" data-section="SOLID">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 Principios SOLID</span></div>
+            <h2 class="slide-title">Los principios SOLID</h2>
+            <p class="slide-subtitle">Cinco reglas para escribir código más comprensible, flexible y fácil de mantener</p>
+
+            <div class="two-cols">
+                <div class="glass-card">
+                    <h3>📜 Un poco de historia</h3>
+                    <p>Robert C. Martin (<strong>"Uncle Bob"</strong>) presentó estos principios en su artículo de 2000 <em>Design Principles and Design Patterns</em>. Más tarde, Michael Feathers propuso el acrónimo <strong>SOLID</strong>.</p>
+                    <p>Su objetivo: evitar que el software se vuelva <strong>rígido</strong> (difícil de cambiar), <strong>frágil</strong> (se rompe al cambiarlo) e <strong>inmóvil</strong> (imposible de reutilizar).</p>
+                </div>
+                <div class="glass-card">
+                    <h3>🔗 ¿Por qué antes de los patrones?</h3>
+                    <p>Los patrones de diseño son, en gran medida, <strong>aplicaciones concretas de SOLID</strong>. Cuando veas Strategy, Decorator u Observer, pregúntate: <em>¿qué principio está aplicando?</em></p>
+                    <p>Usaremos el ejemplo del artículo: una pequeña <strong>librería</strong> que vende libros y emite <strong>facturas</strong>.</p>
+                </div>
+            </div>
+
+            <div class="cards-grid" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="glass-card center"><h3 style="font-size: 2.2rem; margin: 0;">S</h3><p><strong>Single Responsibility</strong><br>Responsabilidad única</p></div>
+                <div class="glass-card center"><h3 style="font-size: 2.2rem; margin: 0;">O</h3><p><strong>Open / Closed</strong><br>Abierto / Cerrado</p></div>
+                <div class="glass-card center"><h3 style="font-size: 2.2rem; margin: 0;">L</h3><p><strong>Liskov Substitution</strong><br>Sustitución de Liskov</p></div>
+                <div class="glass-card center"><h3 style="font-size: 2.2rem; margin: 0;">I</h3><p><strong>Interface Segregation</strong><br>Segregación de interfaces</p></div>
+                <div class="glass-card center"><h3 style="font-size: 2.2rem; margin: 0;">D</h3><p><strong>Dependency Inversion</strong><br>Inversión de dependencias</p></div>
+            </div>
+            <a class="source-link" href="https://www.freecodecamp.org/espanol/news/los-principios-solid-explicados-en-espanol/" target="_blank">📖 Basado en freeCodeCamp — Los principios SOLID explicados en español</a>
+        </div>
+    </div>
+
+    <!-- ===================== S: TEORÍA ===================== -->
+    <div class="slide" id="solid-s" data-toc="S · Responsabilidad única" data-toc-group="Principios SOLID" data-section="SOLID · S — Responsabilidad única">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">S · 1 / 2</span></div>
+            <h2 class="slide-title">S — Principio de Responsabilidad Única</h2>
+            <p class="slide-subtitle">Single Responsibility Principle (SRP)</p>
+
+            <div class="intent-box">
+                <span class="label">📏 Enunciado</span>
+                <p>Un módulo (en Go: un tipo o un paquete) debe tener <strong>una sola responsabilidad</strong>, es decir, <strong>una única razón para cambiar</strong>.</p>
+            </div>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="code-block bad" data-lang="go" data-label="❌ Factura que hace de todo">type Factura struct {
+    Libro         Libro
+    Cantidad      int
+    TasaDescuento float64
+    TasaImpuesto  float64
+}
+
+// Responsabilidad 1: reglas de negocio ✔
+func (f Factura) Total() float64 { ... }
+
+// Responsabilidad 2: presentación  ✘
+func (f Factura) Imprimir() {
+    fmt.Printf("%dx %s ...", f.Cantidad, ...)
+}
+
+// Responsabilidad 3: persistencia  ✘
+func (f Factura) GuardarArchivo(nombre string) {
+    // abre archivo, escribe...
+}</pre>
+                </div>
+                <div>
+                    <div class="glass-card problem-card mb-1">
+                        <h3>😟 ¿Qué está mal?</h3>
+                        <p><code>Factura</code> tiene <strong>tres razones para cambiar</strong>:</p>
+                        <ul>
+                            <li>Cambian las reglas de descuento o impuestos → <em>negocio</em>.</li>
+                            <li>Cambia el formato de impresión (PDF, HTML...) → <em>presentación</em>.</li>
+                            <li>Queremos guardar en base de datos o llamar a una API → <em>persistencia</em>.</li>
+                        </ul>
+                        <p>Mezclar lógica de negocio con impresión o persistencia es uno de los errores <strong>más comunes</strong>: un cambio en el formato puede romper el cálculo.</p>
+                    </div>
+                    <div class="glass-card solution-card">
+                        <h3>💡 Solución</h3>
+                        <p>Separar cada responsabilidad en su propio tipo: <code>Factura</code> (calcula), <code>FacturaImpresion</code> (muestra) y <code>FacturaPersistencia</code> (guarda).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== S: GO ===================== -->
+    <div class="slide" data-section="SOLID · S — Responsabilidad única">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">S · 2 / 2 · Go</span></div>
+            <h2 class="slide-title">SRP aplicado en Go</h2>
+            <div class="two-cols-wide">
+                <pre class="code-block good" data-lang="go" data-label="solid/srp/main.go">type Libro struct {
+    Nombre, Autor string
+    Precio        float64
+}
+
+// Factura: SOLO sabe calcular. Su única razón para cambiar
+// es un cambio en las reglas de negocio de la facturación.
+type Factura struct {
+    Libro         Libro
+    Cantidad      int
+    TasaDescuento float64
+    TasaImpuesto  float64
+}
+
+func (f Factura) Total() float64 {
+    precio := (f.Libro.Precio - f.Libro.Precio*f.TasaDescuento) * float64(f.Cantidad)
+    return precio * (1 + f.TasaImpuesto)
+}
+
+// FacturaImpresion: única responsabilidad -&gt; presentar la factura.
+type FacturaImpresion struct{ factura Factura }
+
+func (fi FacturaImpresion) Imprimir() {
+    f := fi.factura
+    fmt.Printf("%dx %s %.2f$\n", f.Cantidad, f.Libro.Nombre, f.Libro.Precio)
+    fmt.Printf("Descuento: %.0f%%  Impuesto: %.0f%%\n", f.TasaDescuento*100, f.TasaImpuesto*100)
+    fmt.Printf("Total: %.2f$\n", f.Total())
+}
+
+// FacturaPersistencia: única responsabilidad -&gt; guardar la factura.
+type FacturaPersistencia struct{ factura Factura }
+
+func (fp FacturaPersistencia) GuardarArchivo(nombre string) {
+    fmt.Printf("Guardando factura de %q en %s\n", fp.factura.Libro.Nombre, nombre)
+}
+
+func main() {
+    libro := Libro{Nombre: "El Quijote", Autor: "Cervantes", Precio: 50}
+    f := Factura{Libro: libro, Cantidad: 2, TasaDescuento: 0.10, TasaImpuesto: 0.19}
+
+    FacturaImpresion{f}.Imprimir()
+    FacturaPersistencia{f}.GuardarArchivo("factura.txt")
+}</pre>
+                <div>
+                    <ol>
+                        <li><code>Factura</code> conserva solo los datos y el cálculo de <code>Total()</code>.</li>
+                        <li><code>FacturaImpresion</code> recibe una factura y decide <strong>cómo se ve</strong>.</li>
+                        <li><code>FacturaPersistencia</code> decide <strong>dónde se guarda</strong>.</li>
+                        <li>Cambiar el formato de impresión ya no puede romper el cálculo del total.</li>
+                    </ol>
+                    <pre class="output-block mt-1">2x El Quijote 50.00$
+Descuento: 10%  Impuesto: 19%
+Total: 107.10$
+Guardando factura de "El Quijote" en factura.txt</pre>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>SRP en Go</h3>
+                            <p>En Go el SRP también aplica a <strong>paquetes</strong>: un paquete <code>factura</code> no debería importar <code>database/sql</code>. Nombres de paquete como <code>utils</code> o <code>common</code> suelen ser señal de violación.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== O: TEORÍA + GO ===================== -->
+    <div class="slide" id="solid-o" data-toc="O · Abierto / Cerrado" data-toc-group="Principios SOLID" data-section="SOLID · O — Abierto/Cerrado">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">O · 1 / 2</span></div>
+            <h2 class="slide-title">O — Principio Abierto / Cerrado</h2>
+            <p class="slide-subtitle">Open/Closed Principle (OCP) — Bertrand Meyer, 1988</p>
+
+            <div class="intent-box">
+                <span class="label">📏 Enunciado</span>
+                <p>Las entidades de software deben estar <strong>abiertas a la extensión</strong> (agregar comportamiento nuevo) pero <strong>cerradas a la modificación</strong> (sin cambiar el código existente, ya probado).</p>
+            </div>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="code-block bad" data-lang="go" data-label="❌ Cada requisito nuevo modifica el tipo">type FacturaPersistencia struct {
+    factura Factura
+}
+
+func (p FacturaPersistencia) GuardarArchivo(nombre string) { ... }
+
+// El jefe pide base de datos -&gt; EDITAMOS el tipo
+func (p FacturaPersistencia) GuardarEnBaseDatos() { ... }
+
+// Luego MongoDB -&gt; EDITAMOS otra vez...
+func (p FacturaPersistencia) GuardarEnMongo() { ... }
+
+// ...y todo el que lo usa debe cambiar con un switch:
+switch destino {
+case "archivo": p.GuardarArchivo("f.txt")
+case "bd":      p.GuardarEnBaseDatos()
+case "mongo":   p.GuardarEnMongo()
+}</pre>
+                </div>
+                <div>
+                    <div class="glass-card problem-card mb-1">
+                        <h3>😟 El problema</h3>
+                        <p>Cada vez que <strong>modificamos</strong> código existente corremos el riesgo de introducir errores en algo que ya funcionaba. Además, los <code>switch</code> por tipo se riegan por todo el programa.</p>
+                    </div>
+                    <div class="glass-card solution-card">
+                        <h3>💡 La solución: abstracción</h3>
+                        <p>Convertir <code>FacturaPersistencia</code> en una <strong>interfaz</strong> con un método <code>Guardar</code>. Cada nuevo destino es un <strong>tipo nuevo</strong> que la implementa: <em>extendemos</em> agregando código, no editándolo.</p>
+                        <p>Este es el principio detrás de <strong>Strategy, Decorator, Observer, Visitor</strong>...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="SOLID · O — Abierto/Cerrado">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">O · 2 / 2 · Go</span></div>
+            <h2 class="slide-title">OCP aplicado en Go</h2>
+            <div class="two-cols-wide">
+                <pre class="code-block good" data-lang="go" data-label="solid/ocp/main.go">type Factura struct {
+    ID    int
+    Total float64
+}
+
+// Abstracción estable: CERRADA a modificación.
+type FacturaPersistencia interface {
+    Guardar(f Factura) error
+}
+
+// Extensiones: cada nueva forma de guardar es un tipo NUEVO.
+type ArchivoPersistencia struct{ Ruta string }
+
+func (a ArchivoPersistencia) Guardar(f Factura) error {
+    fmt.Printf("[archivo] factura #%d -&gt; %s\n", f.ID, a.Ruta)
+    return nil
+}
+
+type BaseDeDatosPersistencia struct{ Tabla string }
+
+func (b BaseDeDatosPersistencia) Guardar(f Factura) error {
+    fmt.Printf("[postgres] INSERT INTO %s VALUES (%d, %.2f)\n", b.Tabla, f.ID, f.Total)
+    return nil
+}
+
+// Agregado meses después SIN tocar nada de lo anterior.
+type MongoPersistencia struct{ Coleccion string }
+
+func (m MongoPersistencia) Guardar(f Factura) error {
+    fmt.Printf("[mongo] %s.insertOne({id: %d})\n", m.Coleccion, f.ID)
+    return nil
+}
+
+// Este código nunca cambia aunque aparezcan nuevos almacenamientos.
+func GuardarTodas(p FacturaPersistencia, facturas []Factura) {
+    for _, f := range facturas {
+        if err := p.Guardar(f); err != nil {
+            fmt.Println("error:", err)
+        }
+    }
+}
+
+func main() {
+    facturas := []Factura{{1, 107.1}, {2, 59.5}}
+    destinos := []FacturaPersistencia{
+        ArchivoPersistencia{"facturas.txt"},
+        BaseDeDatosPersistencia{"facturas"},
+        MongoPersistencia{"facturas"},
+    }
+    for _, d := range destinos {
+        GuardarTodas(d, facturas)
+    }
+}</pre>
+                <div>
+                    <ol>
+                        <li>La interfaz <code>FacturaPersistencia</code> es el <strong>punto de extensión</strong>.</li>
+                        <li><code>GuardarTodas</code> depende solo de la interfaz: está <strong>cerrada</strong>.</li>
+                        <li>Agregar <code>MongoPersistencia</code> no requirió modificar ninguna línea existente: el sistema está <strong>abierto</strong>.</li>
+                    </ol>
+                    <pre class="output-block mt-1">[archivo] factura #1 -&gt; facturas.txt
+[archivo] factura #2 -&gt; facturas.txt
+[postgres] INSERT INTO facturas VALUES (1, 107.10)
+[postgres] INSERT INTO facturas VALUES (2, 59.50)
+[mongo] facturas.insertOne({id: 1})
+[mongo] facturas.insertOne({id: 2})</pre>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>OCP en la librería estándar</h3>
+                            <p><code>io.Writer</code> es OCP puro: <code>fmt.Fprintf</code> escribe en archivos, sockets, buffers o tu propio tipo sin haber cambiado nunca.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== L ===================== -->
+    <div class="slide" id="solid-l" data-toc="L · Sustitución de Liskov" data-toc-group="Principios SOLID" data-section="SOLID · L — Sustitución de Liskov">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">L · 1 / 2</span></div>
+            <h2 class="slide-title">L — Principio de Sustitución de Liskov</h2>
+            <p class="slide-subtitle">Liskov Substitution Principle (LSP) — Barbara Liskov, 1987</p>
+
+            <div class="intent-box">
+                <span class="label">📏 Enunciado</span>
+                <p>Los subtipos deben poder <strong>sustituir a su tipo base</strong> sin alterar el correcto funcionamiento del programa. Si B es un subtipo de A, cualquier código que use un A debe funcionar igual con un B, <strong>sin resultados extraños</strong>.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card">
+                    <h3>🟥 El ejemplo clásico: Rectángulo vs. Cuadrado</h3>
+                    <p>En matemáticas un cuadrado <strong>"es un"</strong> rectángulo. Así que en Java hacemos <code>Cuadrado extends Rectangulo</code> y sobrescribimos los setters para que <code>setAncho</code> también cambie el alto (y viceversa).</p>
+                    <p>Un cliente que hace <code>setAncho(5); setAlto(4)</code> espera un área de <strong>20</strong>... pero con un cuadrado obtiene <strong>16</strong>. 💥</p>
+                    <p>El subtipo <strong>reduce</strong> las garantías del tipo base en lugar de extenderlas. El error es difícil de detectar porque el código compila perfectamente.</p>
+                </div>
+                <div class="glass-card">
+                    <h3>🐹 ¿Y en Go, que no tiene herencia?</h3>
+                    <p>LSP aplica igual a las <strong>interfaces</strong>: un tipo que satisface una interfaz debe respetar su <strong>contrato implícito</strong>, no solo sus firmas.</p>
+                    <ul>
+                        <li>No lanzar <code>panic("no implementado")</code> en métodos de la interfaz.</li>
+                        <li>No exigir más precondiciones que el contrato.</li>
+                        <li>No entregar menos de lo prometido (postcondiciones).</li>
+                        <li>Ej: un <code>io.Reader</code> debe devolver <code>io.EOF</code> al terminar, como todos.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="warn-box">
+                <h3>⚠️ Regla práctica</h3>
+                <p>Si para que un tipo "encaje" tienes que sobrescribir un método para que haga algo distinto o nada, o tu cliente necesita preguntar <code>if _, ok := x.(Cuadrado)</code>, probablemente estás violando LSP.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="SOLID · L — Sustitución de Liskov">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">L · 2 / 2 · Go</span></div>
+            <h2 class="slide-title">LSP en Go: violación y corrección</h2>
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="solid/lsp/main.go">// ❌ VIOLACIÓN: una interfaz con setters que Cuadrado no puede cumplir.
+type RectanguloMutable interface {
+    SetAncho(w float64)
+    SetAlto(h float64)
+    Area() float64
+}
+
+type Rectangulo struct{ ancho, alto float64 }
+
+func (r *Rectangulo) SetAncho(w float64) { r.ancho = w }
+func (r *Rectangulo) SetAlto(h float64)  { r.alto = h }
+func (r *Rectangulo) Area() float64      { return r.ancho * r.alto }
+
+type Cuadrado struct{ lado float64 }
+
+func (c *Cuadrado) SetAncho(w float64) { c.lado = w } // cambia ambos lados
+func (c *Cuadrado) SetAlto(h float64)  { c.lado = h } // cambia ambos lados
+func (c *Cuadrado) Area() float64      { return c.lado * c.lado }
+
+// El cliente confía en el contrato: "ancho y alto son independientes".
+func PruebaArea(r RectanguloMutable) {
+    r.SetAncho(5)
+    r.SetAlto(4)
+    fmt.Printf("%-16T área esperada 20, obtenida %.0f\n", r, r.Area())
+}
+
+// ✅ SOLUCIÓN: un contrato que TODOS pueden cumplir.
+type Forma interface{ Area() float64 }
+
+type Rect struct{ Ancho, Alto float64 }
+type Cuad struct{ Lado float64 }
+
+func (r Rect) Area() float64 { return r.Ancho * r.Alto }
+func (c Cuad) Area() float64 { return c.Lado * c.Lado }
+
+func AreaTotal(formas ...Forma) (t float64) {
+    for _, f := range formas {
+        t += f.Area()
+    }
+    return
+}
+
+func main() {
+    PruebaArea(&amp;Rectangulo{})
+    PruebaArea(&amp;Cuadrado{}) // 💥 rompe la expectativa del cliente
+
+    fmt.Println("Área total:", AreaTotal(Rect{5, 4}, Cuad{3}))
+}</pre>
+                <div>
+                    <ol>
+                        <li><code>Cuadrado</code> <strong>compila</strong> como <code>RectanguloMutable</code>, pero no respeta su contrato.</li>
+                        <li><code>PruebaArea</code> obtiene 16 en lugar de 20: la sustitución <strong>no es segura</strong>.</li>
+                        <li>La corrección: modelar una abstracción más honesta (<code>Forma</code>) que todos los tipos pueden cumplir <strong>sin trucos</strong>, y valores inmutables.</li>
+                    </ol>
+                    <pre class="output-block mt-1">*main.Rectangulo área esperada 20, obtenida 20
+*main.Cuadrado   área esperada 20, obtenida 16
+Área total: 29</pre>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Lección</h3>
+                            <p>"Es un" en el mundo real no implica "es sustituible" en el código. Diseña interfaces por <strong>comportamiento</strong> que el cliente necesita, no por taxonomías.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== I ===================== -->
+    <div class="slide" id="solid-i" data-toc="I · Segregación de interfaces" data-toc-group="Principios SOLID" data-section="SOLID · I — Segregación de interfaces">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">I · 1 / 2</span></div>
+            <h2 class="slide-title">I — Principio de Segregación de Interfaces</h2>
+            <p class="slide-subtitle">Interface Segregation Principle (ISP)</p>
+
+            <div class="intent-box">
+                <span class="label">📏 Enunciado</span>
+                <p>Ningún cliente debe ser forzado a depender de métodos que <strong>no utiliza</strong>. Es mejor tener <strong>muchas interfaces pequeñas y específicas</strong> que una interfaz grande de propósito general.</p>
+            </div>
+
+            <div class="two-cols">
+                <pre class="code-block bad" data-lang="go" data-label="❌ Interfaz demasiado gorda">type Estacionamiento interface {
+    // lógica de estacionamiento
+    Aparcar(c Coche)
+    Sacar(c Coche)
+    Capacidad() int
+    // lógica de pagos
+    CalcularTarifa(c Coche) float64
+    HacerPago(c Coche)
+}
+
+type EstacionamientoGratis struct{ ... }
+
+// Obligado a implementar pagos que no tienen sentido 😩
+func (e *EstacionamientoGratis) CalcularTarifa(c Coche) float64 {
+    return 0
+}
+func (e *EstacionamientoGratis) HacerPago(c Coche) {
+    panic("¡este estacionamiento es gratis!")
+}</pre>
+                <div>
+                    <div class="glass-card problem-card mb-1">
+                        <h3>😟 El problema</h3>
+                        <p>La interfaz mezcla <strong>dos responsabilidades</strong>: estacionar y cobrar. El estacionamiento gratuito queda obligado a escribir métodos vacíos o que hacen <code>panic</code> (¡lo que además viola Liskov!).</p>
+                    </div>
+                    <div class="glass-card solution-card">
+                        <h3>💡 La solución</h3>
+                        <p>Separar (<em>segregar</em>) la interfaz en <code>Estacionamiento</code> y <code>Pagable</code>. Cada tipo implementa solo lo que necesita. Incluso podríamos dividir <code>Pagable</code> por tipo de pago.</p>
+                    </div>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Go ama el ISP</h3>
+                            <p><code>io.Reader</code>, <code>io.Writer</code>, <code>fmt.Stringer</code>, <code>error</code>: interfaces de <strong>un solo método</strong> que se combinan (<code>io.ReadWriter</code>).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="SOLID · I — Segregación de interfaces">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">I · 2 / 2 · Go</span></div>
+            <h2 class="slide-title">ISP aplicado en Go</h2>
+            <div class="two-cols-wide">
+                <pre class="code-block good" data-lang="go" data-label="solid/isp/main.go">type Coche struct{ Placa string }
+
+// ✅ Interfaces pequeñas y enfocadas (en vez de una "Estacionamiento" gigante).
+type Estacionamiento interface {
+    Aparcar(c Coche)
+    Sacar(c Coche)
+    Capacidad() int
+}
+
+type Pagable interface {
+    CalcularTarifa(c Coche, horas int) float64
+}
+
+// base reutilizable por composición (embedding)
+type base struct {
+    cupos   int
+    ocupado map[string]bool
+}
+
+func (b *base) Aparcar(c Coche) { b.ocupado[c.Placa] = true; fmt.Println("  entra", c.Placa) }
+func (b *base) Sacar(c Coche)   { delete(b.ocupado, c.Placa); fmt.Println("  sale ", c.Placa) }
+func (b *base) Capacidad() int  { return b.cupos - len(b.ocupado) }
+
+// Gratis: implementa SOLO lo que necesita. Nada de métodos de pago vacíos.
+type EstacionamientoGratis struct{ *base }
+
+// Pagado: implementa Estacionamiento + Pagable.
+type EstacionamientoPagado struct {
+    *base
+    precioHora float64
+}
+
+func (e EstacionamientoPagado) CalcularTarifa(_ Coche, horas int) float64 {
+    return float64(horas) * e.precioHora
+}
+
+func nuevaBase(n int) *base { return &amp;base{cupos: n, ocupado: map[string]bool{}} }
+
+func main() {
+    auto := Coche{"ABC-123"}
+    lugares := []Estacionamiento{
+        EstacionamientoGratis{nuevaBase(10)},
+        EstacionamientoPagado{nuevaBase(5), 3000},
+    }
+    for _, e := range lugares {
+        fmt.Printf("%T\n", e)
+        e.Aparcar(auto)
+        // Solo preguntamos por el pago a quien lo soporta
+        if p, ok := e.(Pagable); ok {
+            fmt.Printf("  tarifa 2h: $%.0f\n", p.CalcularTarifa(auto, 2))
+        }
+        e.Sacar(auto)
+        fmt.Println("  cupos libres:", e.Capacidad())
+    }
+}</pre>
+                <div>
+                    <ol>
+                        <li>Dos interfaces pequeñas: <code>Estacionamiento</code> y <code>Pagable</code>.</li>
+                        <li>La lógica común vive en <code>base</code> y se <strong>embebe</strong> (composición en lugar de herencia).</li>
+                        <li><code>EstacionamientoGratis</code> ni siquiera sabe que existen los pagos.</li>
+                        <li>La <em>type assertion</em> <code>e.(Pagable)</code> permite preguntar por una capacidad opcional.</li>
+                    </ol>
+                    <pre class="output-block mt-1">main.EstacionamientoGratis
+  entra ABC-123
+  sale  ABC-123
+  cupos libres: 10
+main.EstacionamientoPagado
+  entra ABC-123
+  tarifa 2h: $6000
+  sale  ABC-123
+  cupos libres: 5</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== D ===================== -->
+    <div class="slide" id="solid-d" data-toc="D · Inversión de dependencias" data-toc-group="Principios SOLID" data-section="SOLID · D — Inversión de dependencias">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">D · 1 / 2</span></div>
+            <h2 class="slide-title">D — Principio de Inversión de Dependencias</h2>
+            <p class="slide-subtitle">Dependency Inversion Principle (DIP)</p>
+
+            <div class="intent-box">
+                <span class="label">📏 Enunciado</span>
+                <p>Los módulos de <strong>alto nivel</strong> no deben depender de módulos de <strong>bajo nivel</strong>: ambos deben depender de <strong>abstracciones</strong>. Las abstracciones no deben depender de los detalles; los detalles deben depender de las abstracciones.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="uml">  SIN DIP  (la dependencia apunta al detalle)
+
+  ┌──────────────────────────┐
+  │ AdministradorPersistencia│  alto nivel
+  └────────────┬─────────────┘
+               │ usa directamente
+               ▼
+  ┌──────────────────────────┐
+  │       MySQLFacturas      │  bajo nivel
+  └──────────────────────────┘
+
+  CON DIP  (ambos dependen de la abstracción)
+
+  ┌──────────────────────────┐
+  │ AdministradorPersistencia│
+  └────────────┬─────────────┘
+               │ depende de
+               ▼
+  ┌──────────────────────────┐
+  │ «interface»              │
+  │ FacturaPersistencia      │
+  └────────────▲─────────────┘
+               │ implementa  (¡la flecha se invierte!)
+     ┌─────────┴─────────┐
+  MySQLFacturas     FakeFacturas</div>
+                <div>
+                    <div class="glass-card mb-1">
+                        <h3>🔁 ¿Qué se "invierte"?</h3>
+                        <p>Normalmente la lógica de negocio llama al código de infraestructura y por tanto <strong>depende</strong> de él. Con DIP, la lógica de negocio define la interfaz que necesita y la infraestructura <strong>se adapta</strong> a ella.</p>
+                    </div>
+                    <div class="glass-card mb-1">
+                        <h3>🤝 Relación con OCP</h3>
+                        <p>Como dice el artículo citando al tío Bob: <em>"si OCP establece el objetivo de la arquitectura OO, DIP establece el mecanismo principal"</em>.</p>
+                    </div>
+                    <div class="glass-card">
+                        <h3>💉 Inyección de dependencias</h3>
+                        <p>La técnica habitual para aplicar DIP: el objeto <strong>recibe</strong> sus dependencias (por constructor) en vez de crearlas. Esto permite cambiar MySQL por un <em>fake</em> en las pruebas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="SOLID · D — Inversión de dependencias">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span><span class="part-badge">D · 2 / 2 · Go</span></div>
+            <h2 class="slide-title">DIP aplicado en Go</h2>
+            <div class="two-cols-wide">
+                <pre class="code-block good" data-lang="go" data-label="solid/dip/main.go">type Factura struct{ ID int }
+type Libro struct{ ISBN string }
+
+// Abstracciones (las define quien las USA, no quien las implementa)
+type FacturaPersistencia interface{ Guardar(Factura) }
+type LibroPersistencia interface{ Guardar(Libro) }
+
+// Módulo de ALTO nivel: depende solo de interfaces.
+type AdministradorPersistencia struct {
+    facturas FacturaPersistencia
+    libros   LibroPersistencia
+}
+
+// Inyección de dependencias por constructor
+func NewAdministrador(f FacturaPersistencia, l LibroPersistencia) *AdministradorPersistencia {
+    return &amp;AdministradorPersistencia{facturas: f, libros: l}
+}
+
+func (a *AdministradorPersistencia) Respaldar(fs []Factura, ls []Libro) {
+    for _, f := range fs {
+        a.facturas.Guardar(f)
+    }
+    for _, l := range ls {
+        a.libros.Guardar(l)
+    }
+}
+
+// Módulos de BAJO nivel: detalles intercambiables.
+type MySQLFacturas struct{}
+
+func (MySQLFacturas) Guardar(f Factura) { fmt.Println("MySQL   &lt;- factura", f.ID) }
+
+type MemoriaLibros struct{ datos []Libro }
+
+func (m *MemoriaLibros) Guardar(l Libro) {
+    m.datos = append(m.datos, l)
+    fmt.Println("Memoria &lt;- libro", l.ISBN)
+}
+
+// Un doble de prueba: cambiar el detalle no toca el alto nivel.
+type FakeFacturas struct{ n int }
+
+func (f *FakeFacturas) Guardar(Factura) { f.n++ }
+
+func main() {
+    admin := NewAdministrador(MySQLFacturas{}, &amp;MemoriaLibros{})
+    admin.Respaldar([]Factura{{1}, {2}}, []Libro{{"978-84"}})
+
+    fake := &amp;FakeFacturas{}
+    NewAdministrador(fake, &amp;MemoriaLibros{}).Respaldar([]Factura{{1}, {2}, {3}}, nil)
+    fmt.Println("En pruebas se guardaron", fake.n, "facturas")
+}</pre>
+                <div>
+                    <ol>
+                        <li><code>AdministradorPersistencia</code> (alto nivel) solo conoce interfaces.</li>
+                        <li>Las dependencias se <strong>inyectan</strong> en <code>NewAdministrador</code>.</li>
+                        <li>MySQL, memoria o un fake son <strong>detalles</strong> intercambiables.</li>
+                        <li>Probar la lógica no requiere una base de datos real.</li>
+                    </ol>
+                    <pre class="output-block mt-1">MySQL   &lt;- factura 1
+MySQL   &lt;- factura 2
+Memoria &lt;- libro 978-84
+En pruebas se guardaron 3 facturas</pre>
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Lenguaje Go</h3>
+                            <p>En Go las interfaces se declaran <strong>en el paquete que las consume</strong>, no en el que las implementa. Gracias a la implementación implícita, <code>MySQLFacturas</code> ni siquiera necesita importar el paquete del administrador.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== SOLID: RESUMEN ===================== -->
+    <div class="slide" data-section="SOLID · Resumen">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head"><span class="cat-badge solid">🧱 SOLID</span></div>
+            <h2 class="slide-title">SOLID en una tabla</h2>
+            <p class="slide-subtitle">Y los patrones donde cada principio aparece con más fuerza</p>
+            <table class="compare-table">
+                <tr><th>Principio</th><th>Idea clave</th><th>Herramienta en Go</th><th>Patrones relacionados</th></tr>
+                <tr><td><span class="badge purple">S</span> Responsabilidad única</td><td>Una sola razón para cambiar</td><td>Tipos y paquetes pequeños y cohesivos</td><td>Facade, Command, Iterator, Visitor</td></tr>
+                <tr><td><span class="badge purple">O</span> Abierto / Cerrado</td><td>Extender sin modificar</td><td>Interfaces, funciones como valores</td><td>Strategy, Decorator, Observer, Visitor, Factory Method</td></tr>
+                <tr><td><span class="badge purple">L</span> Sustitución de Liskov</td><td>Los subtipos cumplen el contrato</td><td>Interfaces honestas, sin <code>panic</code> "no implementado"</td><td>Composite, Proxy, Decorator, State</td></tr>
+                <tr><td><span class="badge purple">I</span> Segregación de interfaces</td><td>Interfaces pequeñas y específicas</td><td>Interfaces de 1–2 métodos, composición de interfaces</td><td>Adapter, Proxy, Iterator</td></tr>
+                <tr><td><span class="badge purple">D</span> Inversión de dependencias</td><td>Depender de abstracciones</td><td>Interfaces del lado del consumidor + inyección por constructor</td><td>Abstract Factory, Bridge, Mediator, Template Method</td></tr>
+            </table>
+            <div class="go-tip">
+                <div class="icon">💡</div>
+                <div>
+                    <h3>Idea para llevarse</h3>
+                    <p>SOLID nos dice <strong>qué propiedades</strong> debe tener un buen diseño. Los patrones son <strong>recetas probadas</strong> para conseguir esas propiedades en situaciones concretas. Ahora sí: ¡a los patrones!</p>
+                </div>
+            </div>
+        </div>
+    </div>

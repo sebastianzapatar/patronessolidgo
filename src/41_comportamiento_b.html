@@ -1,0 +1,1238 @@
+    <!-- =====================================================================
+         PATRÓN 6 (COMPORTAMIENTO): OBSERVER
+         ===================================================================== -->
+    <div class="slide" id="p-observer" data-toc="Observer" data-toc-group="Comportamiento" data-section="Comportamiento · Observer">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Observer</h2>
+            <p class="slide-subtitle">También llamado: Observador, Publicación-Suscripción (Pub/Sub), Event-Subscriber, Listener</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Observer</strong> es un patrón de diseño de comportamiento que define un mecanismo de suscripción para notificar automáticamente a múltiples objetos (<em>suscriptores</em>) sobre cualquier evento o cambio de estado que ocurra en el objeto que están observando (<em>notificador</em> o <em>sujeto</em>).</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina dos objetos: un <code>Cliente</code> interesado en un producto nuevo y una <code>Tienda</code> que lo recibirá pronto. Si el cliente consulta a la tienda cada pocos minutos (<em>polling</em> activo), desperdicia tiempo y recursos en viajes inútiles mientras el producto no llega.</p>
+                    <p>Si, por el contrario, la tienda envía correos masivos a absolutamente todos los usuarios registrados cada vez que entra mercancía, inundará de <em>spam</em> a quienes no les interesa ese artículo. Surge una disyuntiva clara: o el interesado gasta recursos preguntando sin parar, o el emisor acopla y satura a receptores equivocados.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>El objeto cuyo estado es relevante se denomina <strong>Notificador</strong> (<em>Subject</em> / <em>Publisher</em>) y quienes desean reaccionar a sus cambios son los <strong>Suscriptores</strong> (<em>Observers</em>). El patrón añade al notificador una lista dinámica de suscripción con métodos públicos para registrarse (<code>Suscribir</code>) y darse de baja (<code>Desuscribir</code>).</p>
+                    <p>Para no acoplar el notificador a decenas de clases concretas distintas, todos los observadores implementan una misma interfaz <code>Suscriptor</code> con un único método de aviso (<code>Actualizar</code>). Cuando ocurre un evento importante, el notificador recorre su lista e invoca esa interfaz común pasándole los datos contextuales del evento.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌍</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Cuando te suscribes a una revista o periódico impreso, dejas de ir todos los días al quiosco a preguntar si ya salió la nueva edición. La editorial (<em>notificador</em>) mantiene un padrón de suscriptores por temática y entrega cada ejemplar directamente en tu buzón tan pronto se publica. En cualquier momento puedes cancelar tu suscripción y dejarás de recibir números sin afectar a la editorial ni a los demás lectores.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Observer">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Observer — Estructura y análisis</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌──────────────────────────────┐        ┌──────────────────────────┐
+│     (1) GestorEventos        │───────▶│  &lt;&lt;interface&gt;&gt;           │
+│     (Notificador / Subject)  │ 1    * │  (3) Suscriptor          │
+├──────────────────────────────┤        ├──────────────────────────┤
+│ - oyentes: map[ev][]Suscr    │        │ + ID() string            │
+│ + Suscribir(ev, s)           │        │ + Actualizar(ev, datos)  │
+│ + Desuscribir(ev, id)        │        └─────────────△────────────┘
+│ + Notificar(ev, datos)   (2) │                      │
+└──────────────▲───────────────┘          ┌───────────┴───────────┐
+               │ compone                  │                       │
+┌──────────────┴───────────────┐  ┌───────┴─────────┐   ┌─────────┴────────┐
+│     EditorCodigo             │  │(4) LoggerListen.│   │(4) LinterListen. │
+│  + Abrir(ruta) / Guardar()   │  │ + Actualizar()  │   │ + Actualizar()   │
+└──────────────────────────────┘  └─────────────────┘   └──────────────────┘
+       ▲ (6) El Cliente crea notificadores y registra suscriptores (5)</pre>
+
+                    <ol class="participants mt-1">
+                        <li><strong>Notificador (Publisher / Subject):</strong> mantiene la infraestructura de suscripción (mapa o lista de oyentes) y permite agregar o quitar suscriptores en tiempo de ejecución.</li>
+                        <li><strong>Emisión de notificaciones:</strong> al cambiar su estado o ejecutar una acción de negocio, recorre la lista de suscriptores e invoca el método de la interfaz común.</li>
+                        <li><strong>Interfaz Suscriptora (Observer):</strong> declara el contrato de notificación (p. ej., <code>Actualizar(evento, datos)</code>).</li>
+                        <li><strong>Suscriptores Concretos:</strong> ejecutan reacciones específicas ante el evento sin que el notificador conozca sus tipos concretos.</li>
+                        <li><strong>Contexto del evento:</strong> parámetros que el notificador envía en la llamada (tipo de evento, archivo afectado o referencia a sí mismo).</li>
+                        <li><strong>Cliente:</strong> instancia por separado al notificador y a los suscriptores, y los conecta mediante <code>Suscribir</code>.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🧭 Aplicabilidad</h3>
+                        <ul>
+                            <li>Cuando el cambio de estado de un objeto requiere actualizar a otros objetos cuyo conjunto es desconocido de antemano o varía dinámicamente (p. ej., eventos de interfaz gráfica, <em>hooks</em> de compilación o guardado en un IDE).</li>
+                            <li>Cuando algunos objetos de la aplicación deben observar a otros únicamente durante un tiempo limitado o bajo condiciones específicas, pudiendo darse de baja en caliente.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🛠️ Cómo implementarlo</h3>
+                        <ol>
+                            <li>Divide la lógica en dos: el núcleo de negocio independiente será el <strong>notificador</strong> y las reacciones secundarias serán <strong>suscriptores</strong>.</li>
+                            <li>Declara la interfaz <code>Suscriptor</code> con el método <code>Actualizar</code>.</li>
+                            <li>Crea el componente gestor de suscripciones (por composición, ideal en Go) con métodos para suscribir, desuscribir y notificar.</li>
+                            <li>Implementa cada reacción en un struct suscriptor concreto y regístralos desde el cliente.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>Ventajas</h3>
+                            <ul>
+                                <li><strong>Principio Abierto/Cerrado (OCP):</strong> puedes añadir nuevos tipos de suscriptores sin modificar jamás el código del notificador.</li>
+                                <li>Permite establecer y romper relaciones entre objetos dinámicamente en tiempo de ejecución.</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>Desventajas</h3>
+                            <ul>
+                                <li>Los suscriptores suelen ser notificados en un orden arbitrario o sin garantías de precedencia entre ellos.</li>
+                                <li>Si no se dan de baja, las referencias retenidas en la lista pueden causar fugas de memoria (<em>lapsed listener</em>).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🔗 Relación con otros patrones</h3>
+                        <p><strong>Chain of Responsibility</strong>, <strong>Command</strong>, <strong>Mediator</strong> y <strong>Observer</strong> conectan emisores y receptores de formas distintas: <em>Observer</em> permite suscripción dinámica unidireccional a múltiples oyentes, mientras que <em>Mediator</em> centraliza la comunicación bidireccional entre componentes para eliminar dependencias mutuas (aunque un <em>Mediator</em> suele implementarse internamente apoyándose en un <em>Observer</em>).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Observer">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Observer en Go</h2>
+
+            <div class="two-cols-wide">
+                <div>
+                    <pre class="code-block tall" data-lang="go" data-label="comportamiento/observer/main.go">package main
+
+import "fmt"
+
+// Suscriptor (Observer): interfaz común para todos los observadores.
+type Suscriptor interface {
+	ID() string
+	Actualizar(evento, archivo string)
+}
+
+// Notificador (Subject / Publisher): gestiona suscripciones y emite eventos.
+type GestorEventos struct {
+	oyentes map[string][]Suscriptor
+}
+
+func NuevoGestorEventos() *GestorEventos {
+	return &amp;GestorEventos{oyentes: make(map[string][]Suscriptor)}
+}
+
+func (g *GestorEventos) Suscribir(evento string, s Suscriptor) {
+	g.oyentes[evento] = append(g.oyentes[evento], s)
+}
+
+func (g *GestorEventos) Desuscribir(evento string, id string) {
+	lista := g.oyentes[evento]
+	for i, s := range lista {
+		if s.ID() == id {
+			g.oyentes[evento] = append(lista[:i], lista[i+1:]...)
+			return
+		}
+	}
+}
+
+func (g *GestorEventos) Notificar(evento, archivo string) {
+	for _, s := range g.oyentes[evento] {
+		s.Actualizar(evento, archivo)
+	}
+}
+
+// Notificador concreto: Editor de código que delega la suscripción por composición.
+type EditorCodigo struct {
+	Eventos *GestorEventos
+	archivo string
+}
+
+func NuevoEditor() *EditorCodigo {
+	return &amp;EditorCodigo{Eventos: NuevoGestorEventos()}
+}
+
+func (e *EditorCodigo) Abrir(ruta string) {
+	e.archivo = ruta
+	e.Eventos.Notificar("abrir", e.archivo)
+}
+
+func (e *EditorCodigo) Guardar() {
+	e.Eventos.Notificar("guardar", e.archivo)
+}
+
+// Suscriptor Concreto 1: registra eventos en bitácora.
+type LoggerListener struct{ nombre string }
+
+func (l *LoggerListener) ID() string { return l.nombre }
+func (l *LoggerListener) Actualizar(ev, arch string) {
+	fmt.Printf("[LOG:%s] evento=%q sobre %s\n", l.nombre, ev, arch)
+}
+
+// Suscriptor Concreto 2: ejecuta análisis estático al guardar.
+type LinterListener struct{ regla string }
+
+func (l *LinterListener) ID() string { return "linter-" + l.regla }
+func (l *LinterListener) Actualizar(ev, arch string) {
+	fmt.Printf("[LINTER:%s] verificando sintaxis de %s tras %q\n", l.regla, arch, ev)
+}
+
+func main() {
+	editor := NuevoEditor()
+	logger := &amp;LoggerListener{nombre: "auditoria"}
+	linter := &amp;LinterListener{regla: "gofmt"}
+
+	editor.Eventos.Suscribir("abrir", logger)
+	editor.Eventos.Suscribir("guardar", logger)
+	editor.Eventos.Suscribir("guardar", linter)
+
+	editor.Abrir("parser.go")
+	editor.Guardar()
+
+	fmt.Println("--- Dando de baja al linter ---")
+	editor.Eventos.Desuscribir("guardar", linter.ID())
+	editor.Guardar()
+}</pre>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🔎 Explicación paso a paso</h3>
+                        <ol>
+                            <li><code>Suscriptor</code> define la interfaz mínima: un identificador único <code>ID()</code> para poder desuscribirse con seguridad y <code>Actualizar(evento, archivo)</code>.</li>
+                            <li><code>GestorEventos</code> encapsula un mapa <code>map[string][]Suscriptor</code> que permite suscribirse por tipo de evento (<code>"abrir"</code>, <code>"guardar"</code>).</li>
+                            <li><code>EditorCodigo</code> compone a <code>*GestorEventos</code> en lugar de heredar de una clase base, manteniendo limpia su lógica de archivos.</li>
+                            <li>En <code>main()</code> suscribimos tanto el <code>LoggerListener</code> como el <code>LinterListener</code> al evento <code>"guardar"</code>, y luego demostramos la baja en caliente con <code>Desuscribir</code>.</li>
+                        </ol>
+                    </div>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">[LOG:auditoria] evento="abrir" sobre parser.go
+[LOG:auditoria] evento="guardar" sobre parser.go
+[LINTER:gofmt] verificando sintaxis de parser.go tras "guardar"
+--- Dando de baja al linter ---
+[LOG:auditoria] evento="guardar" sobre parser.go</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática en Go</h3>
+                            <p>En Go, además de interfaces como <code>Suscriptor</code>, es muy común implementar <em>Observer</em> usando <strong>funciones callback</strong> (<code>type Handler func(ev string)</code>) o <strong>canales</strong> (<code>chan Evento</code>) cuando los suscriptores procesan eventos de forma concurrente en sus propias <em>goroutines</em>.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/observer" target="_blank">📖 Teoría basada en refactoring.guru — Observer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN 7 (COMPORTAMIENTO): STATE
+         ===================================================================== -->
+    <div class="slide" id="p-state" data-toc="State" data-toc-group="Comportamiento" data-section="Comportamiento · State">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">State</h2>
+            <p class="slide-subtitle">También llamado: Estado, Objects for States</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>State</strong> es un patrón de diseño de comportamiento que permite a un objeto alterar su comportamiento cuando su estado interno cambia. Desde afuera, parece como si el objeto hubiera cambiado su propia clase.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Está estrechamente ligado al concepto de <strong>Máquina de Estados Finitos (FSM)</strong>: un objeto puede encontrarse en un conjunto finito de estados (p. ej. un <code>Documento</code> en <code>Borrador</code>, <code>Moderación</code> o <code>Publicado</code>) y sus métodos se comportan distinto según el estado activo.</p>
+                    <p>Cuando se implementa con enormes bloques <code>switch</code> o cadenas de <code>if/else</code> repetidas dentro de cada método del objeto, el código se vuelve frágil y difícil de mantener: añadir un nuevo estado o cambiar una regla de transición obliga a editar todos los métodos de la clase.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>El patrón <strong>State</strong> propone crear una clase (o struct) separada para cada estado posible del objeto y extraer allí toda la lógica dependiente de ese estado. El objeto original, denominado <strong>Contexto</strong>, conserva una referencia a un objeto estado activo y le delega todo el trabajo.</p>
+                    <p>Para transicionar a otro estado, basta con sustituir el objeto de estado referenciado en el contexto por la instancia del nuevo estado. A diferencia de <em>Strategy</em>, en <em>State</em> los estados concretos sí suelen conocerse entre sí y disparan ellos mismos las transiciones en el contexto.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌍</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Los botones físicos de tu <em>smartphone</em> reaccionan de forma completamente distinta según el estado en que se encuentre el teléfono: si está <strong>desbloqueado</strong>, pulsar un botón abre aplicaciones o sube el volumen; si está <strong>bloqueado</strong>, el mismo botón solo enciende la pantalla de PIN; y si tiene la <strong>batería agotada</strong>, muestra únicamente el ícono de carga.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · State">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">State — Estructura y análisis</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌─────────────────────────────┐         ┌──────────────────────────────┐
+│      (1) Documento          │────────▶│  &lt;&lt;interface&gt;&gt;               │
+│         (Contexto)          │ estado  │  (2) EstadoDocumento         │
+├─────────────────────────────┤         ├──────────────────────────────┤
+│ - estado: EstadoDocumento   │         │ + Nombre() string            │
+│ + CambiarEstado(nuevo)  (4) │         │ + Revisar(d *Documento)      │
+│ + Revisar()                 │         │ + Publicar(d *Doc, admin)    │
+│ + Publicar(esAdmin)         │         └──────────────△───────────────┘
+└──────────────▲──────────────┘                        │
+               │ (3) pasa *Documento      ┌────────────┼────────────┐
+               └────────────────────┐     │            │            │
+                               ┌────┴─────┴───┐ ┌──────┴──────┐ ┌───┴──────────┐
+                               │EstadoBorrador│ │EstadoModera.│ │EstadoPublica.│
+                               └──────────────┘ └─────────────┘ └──────────────┘</pre>
+
+                    <ol class="participants mt-1">
+                        <li><strong>Contexto (<code>Documento</code>):</strong> almacena la referencia al objeto de estado actual, delega en él las operaciones dependientes del estado y ofrece un <em>setter</em> (<code>CambiarEstado</code>) para actualizar el estado activo.</li>
+                        <li><strong>Interfaz Estado (<code>EstadoDocumento</code>):</strong> declara los métodos específicos del estado que tienen sentido para todos los estados concretos.</li>
+                        <li><strong>Estados Concretos:</strong> cada struct implementa el comportamiento propio de un estado y recibe o guarda una referencia al contexto para consultar datos e iniciar transiciones.</li>
+                        <li><strong>Transiciones de estado:</strong> tanto el contexto como los propios estados concretos pueden sustituir el objeto estado activo llamando a <code>d.CambiarEstado(...)</code>.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🧭 Aplicabilidad</h3>
+                        <ul>
+                            <li>Cuando un objeto se comporta de manera drásticamente distinta según su estado actual, el número de estados es considerable y su lógica cambia con frecuencia.</li>
+                            <li>Cuando una clase está contaminada con condicionales masivos (<code>switch</code> / <code>if-else</code>) que inspeccionan banderas o campos internos para decidir qué hacer en cada método (como en un analizador léxico o el ciclo de vida de una conexión TCP).</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🛠️ Cómo implementarlo</h3>
+                        <ol>
+                            <li>Identifica la clase <strong>Contexto</strong> y declara la interfaz <strong>Estado</strong> con las operaciones dependientes del estado.</li>
+                            <li>Por cada estado de la máquina, crea un struct concreto que implemente la interfaz.</li>
+                            <li>Añade en el contexto un campo del tipo de la interfaz Estado y delega allí las llamadas en vez de usar condicionales.</li>
+                            <li>Pasa una referencia del contexto a los métodos del estado para que cada estado pueda disparar transiciones hacia el siguiente estado.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>Ventajas</h3>
+                            <ul>
+                                <li><strong>Principio de Responsabilidad Única (SRP):</strong> aísla el código de cada estado en su propio tipo.</li>
+                                <li><strong>Principio Abierto/Cerrado (OCP):</strong> añade nuevos estados sin alterar el contexto ni los estados ya existentes.</li>
+                                <li>Elimina condicionales gigantescos y simplifica el contexto.</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>Desventajas</h3>
+                            <ul>
+                                <li>Puede resultar excesivo (sobreingeniería) si la máquina solo tiene dos o tres estados muy simples que rara vez cambian.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🔗 Relación con otros patrones</h3>
+                        <p><strong>State</strong> puede verse como una extensión de <strong>Strategy</strong>: ambos usan composición y delegación, pero en <em>Strategy</em> los algoritmos son independientes y no se conocen entre sí, mientras que en <em>State</em> los estados concretos conocen las reglas de transición y cambian activamente el estado del contexto.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · State">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">State en Go</h2>
+
+            <div class="two-cols-wide">
+                <div>
+                    <pre class="code-block tall" data-lang="go" data-label="comportamiento/state/main.go">package main
+
+import "fmt"
+
+// Estado (State): interfaz con las acciones dependientes del estado.
+type EstadoDocumento interface {
+	Nombre() string
+	Revisar(d *Documento)
+	Publicar(d *Documento, esAdmin bool)
+}
+
+// Contexto (Context): mantiene referencia al estado actual y delega en él.
+type Documento struct {
+	Titulo string
+	estado EstadoDocumento
+}
+
+func NuevoDocumento(titulo string) *Documento {
+	doc := &amp;Documento{Titulo: titulo}
+	doc.CambiarEstado(&amp;EstadoBorrador{})
+	return doc
+}
+
+func (d *Documento) CambiarEstado(nuevo EstadoDocumento) {
+	d.estado = nuevo
+	fmt.Printf("  -&gt; [%s] ahora está en estado: %s\n", d.Titulo, nuevo.Nombre())
+}
+
+func (d *Documento) Revisar()                 { d.estado.Revisar(d) }
+func (d *Documento) Publicar(esAdmin bool)    { d.estado.Publicar(d, esAdmin) }
+
+// Estado Concreto 1: Borrador
+type EstadoBorrador struct{}
+
+func (e *EstadoBorrador) Nombre() string { return "Borrador" }
+func (e *EstadoBorrador) Revisar(d *Documento) {
+	fmt.Println("[Borrador] Enviando documento a moderación...")
+	d.CambiarEstado(&amp;EstadoModeracion{})
+}
+func (e *EstadoBorrador) Publicar(d *Documento, esAdmin bool) {
+	fmt.Println("[Borrador] No se puede publicar directamente sin revisión.")
+}
+
+// Estado Concreto 2: Moderación
+type EstadoModeracion struct{}
+
+func (e *EstadoModeracion) Nombre() string { return "Moderación" }
+func (e *EstadoModeracion) Revisar(d *Documento) {
+	fmt.Println("[Moderación] El documento ya está en revisión.")
+}
+func (e *EstadoModeracion) Publicar(d *Documento, esAdmin bool) {
+	if !esAdmin {
+		fmt.Println("[Moderación] Permiso denegado: solo un admin puede aprobar. Vuelve a borrador.")
+		d.CambiarEstado(&amp;EstadoBorrador{})
+		return
+	}
+	fmt.Println("[Moderación] Aprobado por administrador.")
+	d.CambiarEstado(&amp;EstadoPublicado{})
+}
+
+// Estado Concreto 3: Publicado
+type EstadoPublicado struct{}
+
+func (e *EstadoPublicado) Nombre() string { return "Publicado" }
+func (e *EstadoPublicado) Revisar(d *Documento) {
+	fmt.Println("[Publicado] Ya está publicado; no requiere revisión.")
+}
+func (e *EstadoPublicado) Publicar(d *Documento, esAdmin bool) {
+	fmt.Println("[Publicado] Operación ignorada: el documento ya es público.")
+}
+
+func main() {
+	doc := NuevoDocumento("Especificación Gramática LL(1)")
+	doc.Publicar(false)
+	doc.Revisar()
+	doc.Publicar(false) // Falla y regresa a Borrador
+	doc.Revisar()
+	doc.Publicar(true)  // Admin aprueba -&gt; Publicado
+	doc.Revisar()
+}</pre>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🔎 Explicación paso a paso</h3>
+                        <ol>
+                            <li><code>EstadoDocumento</code> define las operaciones del ciclo de vida (<code>Revisar</code> y <code>Publicar</code>) recibiendo el puntero <code>*Documento</code> como contexto.</li>
+                            <li><code>Documento</code> no tiene ni un solo <code>if</code> ni <code>switch</code>: delega en <code>d.estado.Revisar(d)</code> y <code>d.estado.Publicar(d, esAdmin)</code>.</li>
+                            <li>Cada estado concreto (<code>EstadoBorrador</code>, <code>EstadoModeracion</code>, <code>EstadoPublicado</code>) decide qué acción ejecutar y a qué estado transicionar invocando <code>d.CambiarEstado(...)</code>.</li>
+                        </ol>
+                    </div>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">  -&gt; [Especificación Gramática LL(1)] ahora está en estado: Borrador
+[Borrador] No se puede publicar directamente sin revisión.
+[Borrador] Enviando documento a moderación...
+  -&gt; [Especificación Gramática LL(1)] ahora está en estado: Moderación
+[Moderación] Permiso denegado: solo un admin puede aprobar. Vuelve a borrador.
+  -&gt; [Especificación Gramática LL(1)] ahora está en estado: Borrador
+[Borrador] Enviando documento a moderación...
+  -&gt; [Especificación Gramática LL(1)] ahora está en estado: Moderación
+[Moderación] Aprobado por administrador.
+  -&gt; [Especificación Gramática LL(1)] ahora está en estado: Publicado
+[Publicado] Ya está publicado; no requiere revisión.</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática en Go</h3>
+                            <p>En el <em>lexer</em> de la librería estándar de Go (inspirado en la charla de Rob Pike <em>"Lexical Scanning in Go"</em>), una máquina de estados también puede modelarse de forma funcional como un tipo recursivo <code>type stateFn func(*Lexer) stateFn</code>, donde cada función de estado ejecuta su lógica y devuelve la función del siguiente estado.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/state" target="_blank">📖 Teoría basada en refactoring.guru — State</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN 8 (COMPORTAMIENTO): STRATEGY
+         ===================================================================== -->
+    <div class="slide" id="p-strategy" data-toc="Strategy" data-toc-group="Comportamiento" data-section="Comportamiento · Strategy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Strategy</h2>
+            <p class="slide-subtitle">También llamado: Estrategia, Policy</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Strategy</strong> es un patrón de diseño de comportamiento que te permite definir una familia de algoritmos, encapsular cada uno de ellos en una clase (o struct) separada y hacer que sus objetos sean completamente intercambiables en tiempo de ejecución.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina que desarrollas una aplicación de navegación con mapas. Empiezas calculando rutas solo para automóviles por carretera, pero pronto los usuarios piden rutas a pie, luego en transporte público, después en bicicleta y finalmente rutas turísticas.</p>
+                    <p>Cada vez que agregas un algoritmo de enrutamiento dentro de la clase principal <code>Navegador</code>, su tamaño se duplica. Cualquier ajuste en el cálculo de bicicletas arriesga romper el código de automóviles y genera constantes conflictos de integración (<em>merge conflicts</em>) en el equipo.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Extrae cada variante del algoritmo a su propia clase llamada <strong>Estrategia</strong>, todas implementando una interfaz común (p. ej., <code>EstrategiaRuta</code> con el método <code>CalcularRuta(origen, destino)</code>).</p>
+                    <p>La clase original <code>Navegador</code> actúa como <strong>Contexto</strong>: guarda una referencia a una estrategia y delega en ella el cálculo sin saber cómo funciona por dentro. El cliente puede inyectar o cambiar en caliente la estrategia activa según la preferencia del usuario.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌍</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Necesitas ir desde la universidad hasta el aeropuerto. Puedes elegir entre varias <strong>estrategias de transporte</strong>: tomar el metro/autobús, pedir un taxi o ir en bicicleta. El objetivo es idéntico (trasladarte del punto A al punto B), pero eliges e intercambias el algoritmo según tu presupuesto, equipaje o prisa del momento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Strategy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Strategy — Estructura y análisis</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌─────────────────────────────┐         ┌────────────────────────────────┐
+│      (1) Navegador          │────────▶│  &lt;&lt;interface&gt;&gt;                 │
+│         (Contexto)          │         │  (2) EstrategiaRuta            │
+├─────────────────────────────┤         ├────────────────────────────────┤
+│ - estrategia: EstrategiaRuta│         │ + Nombre() string              │
+│ + CambiarEstrategia(e)      │         │ + CalcularRuta(o, d) ([]str,i) │
+│ + MostrarRuta(o, d)     (4) │         └───────────────△────────────────┘
+└──────────────▲──────────────┘                         │
+               │ (5) Cliente configura     ┌────────────┼────────────┐
+               │     e intercambia         │            │            │
+                                 ┌─────────┴─────┐ ┌────┴─────────┐ ┌┴──────────────┐
+                                 │(3) RutaAuto   │ │(3) RutaTransp│ │(3) RutaBici   │
+                                 └───────────────┘ └──────────────┘ └───────────────┘</pre>
+
+                    <ol class="participants mt-1">
+                        <li><strong>Contexto (<code>Navegador</code>):</strong> mantiene una referencia a una de las estrategias concretas y se comunica con ella únicamente a través de la interfaz común.</li>
+                        <li><strong>Interfaz Estrategia (<code>EstrategiaRuta</code>):</strong> declara el método común que el contexto usa para ejecutar cualquier variante del algoritmo.</li>
+                        <li><strong>Estrategias Concretas:</strong> implementan las distintas variaciones del algoritmo (enrutamiento en auto, transporte público, bicicleta; o p. ej. distintos pases de optimización en un compilador).</li>
+                        <li><strong>Ejecución delegada:</strong> el contexto invoca el método de la estrategia sin conocer cómo se calcula internamente.</li>
+                        <li><strong>Cliente:</strong> elige la estrategia concreta adecuada, la pasa al contexto y puede sustituirla en cualquier momento con un modificador (<code>CambiarEstrategia</code>).</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🧭 Aplicabilidad</h3>
+                        <ul>
+                            <li>Cuando necesitas usar distintas variantes de un algoritmo dentro de un objeto y poder intercambiarlas durante el tiempo de ejecución.</li>
+                            <li>Cuando tienes muchas clases similares que solo difieren en cómo ejecutan cierto comportamiento, o un condicional enorme que selecciona entre variantes del mismo algoritmo.</li>
+                            <li>Para aislar la lógica de negocio principal de los detalles complejos y estructuras de datos internas de los algoritmos (p. ej. algoritmos de grafos, compresión o asignación de registros).</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🛠️ Cómo implementarlo</h3>
+                        <ol>
+                            <li>Identifica en el contexto el algoritmo que cambia con frecuencia o está atrapado en un gran <code>switch</code>.</li>
+                            <li>Declara la interfaz <code>Estrategia</code> común a todas las variantes.</li>
+                            <li>Extrae cada algoritmo en un struct independiente que implemente dicha interfaz.</li>
+                            <li>Añade en el contexto un campo para la interfaz y un método <em>setter</em> para cambiarla en tiempo de ejecución.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>Ventajas</h3>
+                            <ul>
+                                <li>Permite intercambiar algoritmos dentro de un objeto en caliente (en tiempo de ejecución).</li>
+                                <li>Aísla los detalles internos del algoritmo del código que lo consume.</li>
+                                <li>Sustituye la herencia por composición y cumple el <strong>Principio Abierto/Cerrado (OCP)</strong>.</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>Desventajas</h3>
+                            <ul>
+                                <li>Los clientes deben conocer las diferencias entre estrategias para poder elegir la adecuada.</li>
+                                <li>Si solo existen un par de algoritmos que casi nunca cambian, crear tipos e interfaces extra puede ser innecesario.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🔗 Relación con otros patrones</h3>
+                        <p><strong>Decorator</strong> cambia la <em>piel</em> de un objeto envolviéndolo en capas, mientras que <strong>Strategy</strong> cambia sus <em>entrañas</em> sustituyendo el algoritmo interno. Frente a <strong>Template Method</strong> (que varía pasos mediante herencia/esqueleto fijo), <strong>Strategy</strong> reemplaza el algoritmo entero por composición en tiempo de ejecución.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Strategy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Strategy en Go</h2>
+
+            <div class="two-cols-wide">
+                <div>
+                    <pre class="code-block tall" data-lang="go" data-label="comportamiento/strategy/main.go">package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+// Estrategia (Strategy): interfaz común para toda la familia de algoritmos.
+type EstrategiaRuta interface {
+	Nombre() string
+	CalcularRuta(origen, destino string) ([]string, int)
+}
+
+// Estrategia Concreta 1: Automóvil (prioriza autopistas y velocidad).
+type RutaAutomovil struct{}
+
+func (r RutaAutomovil) Nombre() string { return "Automóvil" }
+func (r RutaAutomovil) CalcularRuta(origen, destino string) ([]string, int) {
+	return []string{origen, "Autopista Central", "Peaje Norte", destino}, 25
+}
+
+// Estrategia Concreta 2: Transporte Público (combina metro y bus).
+type RutaTransportePublico struct{}
+
+func (r RutaTransportePublico) Nombre() string { return "Transporte Público" }
+func (r RutaTransportePublico) CalcularRuta(origen, destino string) ([]string, int) {
+	return []string{origen, "Estación Metro A", "Transbordo Línea B", destino}, 40
+}
+
+// Estrategia Concreta 3: Bicicleta (prioriza ciclovías y parques).
+type RutaBicicleta struct{}
+
+func (r RutaBicicleta) Nombre() string { return "Bicicleta" }
+func (r RutaBicicleta) CalcularRuta(origen, destino string) ([]string, int) {
+	return []string{origen, "Ciclovía del Río", "Parque Lineal", destino}, 55
+}
+
+// Contexto (Context): delega el cálculo en la estrategia activa sin usar switch.
+type Navegador struct {
+	estrategia EstrategiaRuta
+}
+
+func NuevoNavegador(e EstrategiaRuta) *Navegador {
+	return &amp;Navegador{estrategia: e}
+}
+
+func (n *Navegador) CambiarEstrategia(e EstrategiaRuta) {
+	n.estrategia = e
+}
+
+func (n *Navegador) MostrarRuta(origen, destino string) {
+	tramos, minutos := n.estrategia.CalcularRuta(origen, destino)
+	fmt.Printf("[%s] (%d min): %s\n",
+		n.estrategia.Nombre(), minutos, strings.Join(tramos, " -&gt; "))
+}
+
+func main() {
+	nav := NuevoNavegador(RutaAutomovil{})
+	nav.MostrarRuta("Campus", "Aeropuerto")
+
+	nav.CambiarEstrategia(RutaTransportePublico{})
+	nav.MostrarRuta("Campus", "Aeropuerto")
+
+	nav.CambiarEstrategia(RutaBicicleta{})
+	nav.MostrarRuta("Campus", "Aeropuerto")
+}</pre>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🔎 Explicación paso a paso</h3>
+                        <ol>
+                            <li><code>EstrategiaRuta</code> define el contrato común para calcular el recorrido entre dos puntos devolviendo los tramos y el tiempo estimado.</li>
+                            <li><code>RutaAutomovil</code>, <code>RutaTransportePublico</code> y <code>RutaBicicleta</code> implementan de forma autónoma cada algoritmo sin tocar a las demás.</li>
+                            <li><code>Navegador</code> (Contexto) recibe cualquier <code>EstrategiaRuta</code> y permite intercambiarla en caliente con <code>CambiarEstrategia</code>.</li>
+                        </ol>
+                    </div>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">[Automóvil] (25 min): Campus -&gt; Autopista Central -&gt; Peaje Norte -&gt; Aeropuerto
+[Transporte Público] (40 min): Campus -&gt; Estación Metro A -&gt; Transbordo Línea B -&gt; Aeropuerto
+[Bicicleta] (55 min): Campus -&gt; Ciclovía del Río -&gt; Parque Lineal -&gt; Aeropuerto</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática en Go</h3>
+                            <p>Como las funciones en Go son ciudadanos de primera clase, cuando una estrategia consta de un único método y no guarda estado interno, suele reemplazarse toda la interfaz por un tipo función (p. ej. <code>slices.SortFunc(s, cmp)</code> en la librería estándar recibe directamente una función estrategia de comparación).</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/strategy" target="_blank">📖 Teoría basada en refactoring.guru — Strategy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN 9 (COMPORTAMIENTO): TEMPLATE METHOD
+         ===================================================================== -->
+    <div class="slide" id="p-template-method" data-toc="Template Method" data-toc-group="Comportamiento" data-section="Comportamiento · Template Method">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Template Method</h2>
+            <p class="slide-subtitle">También llamado: Método plantilla</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Template Method</strong> es un patrón de diseño de comportamiento que define el <strong>esqueleto invariante de un algoritmo</strong> en una operación plantilla, delegando o permitiendo redefinir ciertos pasos específicos en implementaciones concretas sin alterar la estructura ni el orden general del algoritmo.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina una aplicación de minería de datos que procesa documentos corporativos en formatos <code>CSV</code>, <code>DOC</code> y <code>PDF</code>. Aunque la lectura y extracción de bytes cambia según el formato, la secuencia global (<em>Abrir → Extraer → Parsear → Analizar → Cerrar</em>) y el análisis estadístico final son idénticos en los tres casos.</p>
+                    <p>Si cada formato duplica todo el flujo por separado, cualquier cambio en el orden de etapas o en el análisis común obliga a editar todas las clases, rompiendo el principio DRY.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución (y cómo se adapta a Go)</h3>
+                    <p>Se descompone el algoritmo en pasos bien definidos: <strong>pasos obligatorios</strong> (variables según el formato), <strong>pasos comunes fijos</strong> y <strong>ganchos (<em>hooks</em>) opcionales</strong> con comportamiento por defecto vacío antes o después de etapas críticas.</p>
+                    <p><strong>¿Cómo se resuelve en Go si no hay herencia ni clases abstractas?</strong> En Go se define una <strong>interfaz de pasos</strong> (<code>PasosMineria</code>) junto con una función o struct ejecutor (<code>MineroDatos.Ejecutar</code>) que codifica el esqueleto fijo e invoca la interfaz en orden. Los pasos opcionales o <em>hooks</em> por defecto se reutilizan embebiendo un struct base (<code>BaseMineria</code>) por composición.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌍</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>En la construcción residencial en serie, un plano arquitectónico maestro fija la secuencia obligatoria de etapas: colocar cimientos, levantar estructura, instalar plomería/electricidad y pintar acabados. No puedes instalar el techo antes que los cimientos (el esqueleto es fijo), pero cada propietario puede personalizar pasos específicos como el tipo de piso o el diseño de las ventanas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Template Method">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Template Method — Estructura en Go</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌──────────────────────────────────────┐       ┌─────────────────────────────┐
+│        (1) MineroDatos               │──────▶│  &lt;&lt;interface&gt;&gt;              │
+│   (Esqueleto / Método Plantilla)     │invoca │  (2) PasosMineria           │
+├──────────────────────────────────────┤       ├─────────────────────────────┤
+│ + Ejecutar(p PasosMineria, ruta):    │       │ + Abrir(ruta) string        │
+│     1. p.Abrir(ruta)                 │       │ + ExtraerDatos(c) []string  │
+│     2. p.ExtraerDatos(raw)           │       │ + Parsear(crudos) map       │
+│     3. p.Parsear(crudos)             │       │ + AntesDeAnalizar() [hook]  │
+│     4. p.AntesDeAnalizar() [hook]    │       │ + Cerrar(ruta)              │
+│     5. m.analizarYReportar() [fijo]  │       └──────────────△──────────────┘
+│     6. p.Cerrar(ruta)                │                      │ implementan
+└──────────────────────────────────────┘          ┌───────────┴───────────┐
+                                                  │                       │
+┌──────────────────────────────────────┐   ┌──────┴─────────┐   ┌─────────┴────────┐
+│ (3) BaseMineria (pasos por defecto)  │──▶│ (4) MineroCSV  │   │ (4) MineroPDF    │
+│ + AntesDeAnalizar() {}  / + Cerrar() │   │ embebe Base    │   │ sobrescribe Hook │
+└──────────────────────────────────────┘   └────────────────┘   └──────────────────┘</pre>
+
+                    <ol class="participants mt-1">
+                        <li><strong>Método Plantilla (<code>MineroDatos.Ejecutar</code>):</strong> define el esqueleto invariante del algoritmo invocando los pasos en un orden estricto y ejecutando directamente los pasos comunes fijos.</li>
+                        <li><strong>Interfaz de Pasos (<code>PasosMineria</code>):</strong> sustituye a los métodos abstractos de POO clásica; declara las operaciones primitivas que cada variante debe suministrar.</li>
+                        <li><strong>Struct Base opcional (<code>BaseMineria</code>):</strong> proporciona implementaciones por defecto para pasos comunes y ganchos (<em>hooks</em>) mediante <em>struct embedding</em>.</li>
+                        <li><strong>Implementaciones Concretas (<code>MineroCSV</code>, <code>MineroPDF</code>):</strong> implementan los pasos de su formato y, si lo necesitan, redefinen los <em>hooks</em> sin poder alterar el método plantilla.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🧭 Aplicabilidad</h3>
+                        <ul>
+                            <li>Cuando quieres que los clientes personalicen únicamente ciertos pasos de un algoritmo (p. ej., fases específicas del <em>pipeline</em> de un compilador o exportador) sin permitirles modificar la estructura ni el orden general.</li>
+                            <li>Cuando tienes varios tipos con algoritmos casi idénticos que solo varían en pasos puntuales y deseas eliminar la duplicación de código.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🛠️ Cómo implementarlo en Go</h3>
+                        <ol>
+                            <li>Divide el algoritmo en pasos e identifica cuáles son fijos, cuáles son obligatorios por variante y cuáles son ganchos (<em>hooks</em>) opcionales.</li>
+                            <li>Declara la interfaz de pasos (<code>PasosMineria</code>) con los pasos variables y <em>hooks</em>.</li>
+                            <li>Crea un struct <code>Base</code> con métodos por defecto para los <em>hooks</em> (para embeberlo en los structs concretos).</li>
+                            <li>Escribe el método plantilla <code>Ejecutar(p PasosMineria, ...)</code> que orquesta la secuencia completa.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>Ventajas</h3>
+                            <ul>
+                                <li>Permite redefinir solo ciertas partes de un algoritmo grande sin verse afectado por cambios en el resto del flujo.</li>
+                                <li>Concentra el código compartido y el orden de ejecución en un único lugar (evita duplicación).</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>Desventajas</h3>
+                            <ul>
+                                <li>Algunos clientes pueden verse limitados por la rigidez del esqueleto predefinido.</li>
+                                <li>Cuantos más pasos y <em>hooks</em> tenga la plantilla, más difícil resulta mantenerla y comprenderla.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🔗 Relación con otros patrones</h3>
+                        <p><strong>Factory Method</strong> es una especialización de <em>Template Method</em> aplicada a la creación de objetos. En Go, como no existe herencia de clases, <strong>Template Method</strong> converge estructuralmente con <strong>Strategy</strong> (usa interfaces y composición), con la diferencia de que aquí el esqueleto multi-paso es el protagonista.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Template Method">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Template Method en Go</h2>
+
+            <div class="two-cols-wide">
+                <div>
+                    <pre class="code-block tall" data-lang="go" data-label="comportamiento/templatemethod/main.go">package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+// PasosMineria define los pasos primitivos y ganchos (hooks) del algoritmo.
+// En Go no hay herencia ni métodos abstractos: modelamos los pasos variables con una interfaz.
+type PasosMineria interface {
+	Abrir(ruta string) string
+	ExtraerDatos(contenido string) []string
+	Parsear(crudos []string) map[string]int
+	Cerrar(ruta string)
+	AntesDeAnalizar() // Gancho (hook) opcional
+}
+
+// BaseMineria aporta implementaciones por defecto para pasos opcionales y hooks
+// mediante composición (struct embedding).
+type BaseMineria struct{}
+
+func (BaseMineria) AntesDeAnalizar() {}
+func (BaseMineria) Cerrar(ruta string) {
+	fmt.Printf("  [Base] Cerrando descriptor de %s\n", ruta)
+}
+
+// MineroDatos contiene el "Método Plantilla" (Ejecutar) que fija el esqueleto del algoritmo.
+type MineroDatos struct{}
+
+func (m MineroDatos) Ejecutar(p PasosMineria, ruta string) {
+	fmt.Printf("=== Procesando %s ===\n", ruta)
+	raw := p.Abrir(ruta)
+	crudos := p.ExtraerDatos(raw)
+	datos := p.Parsear(crudos)
+	p.AntesDeAnalizar() // Hook
+	m.analizarYReportar(datos)
+	p.Cerrar(ruta)
+}
+
+// Paso común fijo en el esqueleto (no sobrescribible).
+func (MineroDatos) analizarYReportar(datos map[string]int) {
+	fmt.Printf("  [Análisis común] Total claves=%d -&gt; %v\n", len(datos), datos)
+}
+
+// Implementación Concreta 1: CSV (embebe BaseMineria y usa el hook por defecto).
+type MineroCSV struct{ BaseMineria }
+
+func (MineroCSV) Abrir(ruta string) string {
+	fmt.Println("  [CSV] Leyendo texto separado por comas")
+	return " compilador,3 ; lexer,2 ; parser,5 "
+}
+func (MineroCSV) ExtraerDatos(c string) []string { return strings.Split(c, ";") }
+func (MineroCSV) Parsear(crudos []string) map[string]int {
+	res := make(map[string]int)
+	for _, fila := range crudos {
+		partes := strings.Split(strings.TrimSpace(fila), ",")
+		res[partes[0]] = len(partes[0])
+	}
+	return res
+}
+
+// Implementación Concreta 2: PDF (sobrescribe el hook AntesDeAnalizar).
+type MineroPDF struct{ BaseMineria }
+
+func (MineroPDF) Abrir(ruta string) string {
+	fmt.Println("  [PDF] Descomprimiendo flujos de objetos PDF")
+	return "AST|SSA|IR"
+}
+func (MineroPDF) ExtraerDatos(c string) []string { return strings.Split(c, "|") }
+func (MineroPDF) Parsear(crudos []string) map[string]int {
+	res := make(map[string]int)
+	for i, tok := range crudos {
+		res[tok] = (i + 1) * 10
+	}
+	return res
+}
+func (MineroPDF) AntesDeAnalizar() {
+	fmt.Println("  [Hook PDF] Limpiando metadatos OCR antes del análisis")
+}
+
+func main() {
+	plantilla := MineroDatos{}
+	plantilla.Ejecutar(MineroCSV{}, "metricas.csv")
+	plantilla.Ejecutar(MineroPDF{}, "articulo.pdf")
+}</pre>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🔎 Explicación paso a paso</h3>
+                        <ol>
+                            <li><code>PasosMineria</code> declara los pasos personalizables del algoritmo y el gancho <code>AntesDeAnalizar()</code>.</li>
+                            <li><code>BaseMineria</code> ofrece un cuerpo vacío para el <em>hook</em> y un cierre estándar. <code>MineroCSV</code> y <code>MineroPDF</code> lo embeben para no repetir código.</li>
+                            <li><code>MineroDatos.Ejecutar</code> es el <strong>Método Plantilla</strong>: fija el orden de los 6 pasos e invoca el paso privado invariante <code>analizarYReportar</code>.</li>
+                            <li><code>MineroPDF</code> redefine <code>AntesDeAnalizar()</code> para limpiar metadatos OCR, mientras <code>MineroCSV</code> conserva el gancho silencioso por defecto.</li>
+                        </ol>
+                    </div>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">=== Procesando metricas.csv ===
+  [CSV] Leyendo texto separado por comas
+  [Análisis común] Total claves=3 -&gt; map[compilador:10 lexer:5 parser:6]
+  [Base] Cerrando descriptor de metricas.csv
+=== Procesando articulo.pdf ===
+  [PDF] Descomprimiendo flujos de objetos PDF
+  [Hook PDF] Limpiando metadatos OCR antes del análisis
+  [Análisis común] Total claves=3 -&gt; map[AST:10 IR:30 SSA:20]
+  [Base] Cerrando descriptor de articulo.pdf</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática en Go</h3>
+                            <p>¡Cuidado con el <em>embedding</em> en Go! Si pusieras el método plantilla <code>Ejecutar()</code> dentro de <code>BaseMineria</code>, el receptor sería siempre <code>BaseMineria</code> y <strong>no</strong> llamaría a los métodos sobrescritos del struct hijo (en Go no hay despacho virtual sobre el struct embebido). Por eso el esqueleto <code>Ejecutar(p PasosMineria, ...)</code> recibe explícitamente la interfaz <code>PasosMineria</code>.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/template-method" target="_blank">📖 Teoría basada en refactoring.guru — Template Method</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN 10 (COMPORTAMIENTO): VISITOR
+         ===================================================================== -->
+    <div class="slide" id="p-visitor" data-toc="Visitor" data-toc-group="Comportamiento" data-section="Comportamiento · Visitor">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Visitor</h2>
+            <p class="slide-subtitle">También llamado: Visitante</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Visitor</strong> es un patrón de diseño de comportamiento que te permite <strong>separar los algoritmos de la estructura de objetos</strong> sobre la que operan, pudiendo añadir nuevas operaciones a una jerarquía de tipos (como un Árbol Sintáctico Abstracto — AST) sin modificar sus estructuras.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>En un compilador tienes una jerarquía de nodos del <strong>AST</strong> (<code>Numero</code>, <code>Suma</code>, <code>Multiplicacion</code>, etc.). Primero necesitas evaluar las expresiones; luego te piden imprimir el árbol en formato infijo; después verificar tipos, exportar a XML/JSON y generar código intermedio.</p>
+                    <p>Si añades un método nuevo en cada struct de nodo por cada nueva fase del compilador, mezclas responsabilidades dispares dentro de los nodos de datos y tienes que modificar y recompilar toda la jerarquía del AST cada vez que agregas una operación.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución (Double Dispatch)</h3>
+                    <p>Coloca cada nueva operación en una clase separada llamada <strong>Visitante</strong> (p. ej., <code>Evaluador</code>, <code>ImpresorAST</code>) que declara un método específico por cada tipo concreto de nodo (<code>VisitarNumero</code>, <code>VisitarSuma</code>, ...).</p>
+                    <p>Para evitar cadenas de <code>switch</code> de tipos desde afuera, cada nodo implementa un único método trivial <code>Aceptar(v Visitante)</code> que invoca de vuelta el método exacto del visitante pasándose a sí mismo (<code>v.VisitarSuma(s)</code>). Esta técnica se conoce como <strong>Double Dispatch</strong> (doble despacho).</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌍</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Un experimentado agente de seguros (<em>Visitante</em>) recorre todos los edificios de un barrio (<em>estructura de objetos</em>). Los edificios no cambian, pero el agente ejecuta una acción especializada según el tipo concreto de inmueble que visita: si visita una <strong>vivienda residencial</strong> ofrece seguro médico, si visita un <strong>banco</strong> ofrece seguro contra robos, y si visita una <strong>cafetería</strong> ofrece póliza contra incendios e inundaciones.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Visitor">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Visitor — Estructura y análisis</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌──────────────────────────────────┐       ┌───────────────────────────────┐
+│  &lt;&lt;interface&gt;&gt;                   │       │  &lt;&lt;interface&gt;&gt;                │
+│  (1) VisitanteExpr               │◀──────│  (3) Expr (Elemento AST)      │
+├──────────────────────────────────┤acepta ├───────────────────────────────┤
+│ + VisitarNumero(n *Numero)       │       │ + Aceptar(v VisitanteExpr)    │
+│ + VisitarSuma(s *Suma)           │       └───────────────△───────────────┘
+│ + VisitarMultiplicacion(m *Mult) │                       │
+└─────────────────△────────────────┘           ┌───────────┼───────────┐
+                  │                            │           │           │
+        ┌─────────┴─────────┐            ┌─────┴────┐ ┌────┴────┐ ┌────┴─────────┐
+        │                   │            │(4) Numero│ │(4) Suma │ │(4) Multiplic.│
+┌───────┴────────┐ ┌────────┴────────┐   ├──────────┤ ├─────────┤ ├──────────────┤
+│(2) Evaluador   │ │(2) ImpresorAST  │   │v.Visitar │ │v.Visitar│ │v.Visitar     │
+│ - Resultado    │ │ - Salida        │   │ Numero() │ │ Suma()  │ │ Mult()       │
+└────────────────┘ └─────────────────┘   └──────────┘ └─────────┘ └──────────────┘</pre>
+
+                    <ol class="participants mt-1">
+                        <li><strong>Interfaz Visitante (<code>VisitanteExpr</code>):</strong> declara un método de visita para cada tipo de elemento concreto de la estructura (<code>VisitarNumero</code>, <code>VisitarSuma</code>, etc.).</li>
+                        <li><strong>Visitantes Concretos (<code>Evaluador</code>, <code>ImpresorAST</code>):</strong> implementan un algoritmo completo sobre la jerarquía y pueden acumular estado intermedio (p. ej. <code>Resultado</code> o <code>Salida</code>) mientras recorren el árbol.</li>
+                        <li><strong>Interfaz Elemento (<code>Expr</code>):</strong> declara el método <code>Aceptar(v VisitanteExpr)</code>.</li>
+                        <li><strong>Elementos Concretos (Nodos del AST):</strong> implementan <code>Aceptar</code> redirigiendo la llamada al método del visitante que corresponde a su tipo exacto (<em>Double Dispatch</em>).</li>
+                        <li><strong>Cliente:</strong> construye el árbol (p. ej. un <em>Composite</em> AST) y le pasa distintos visitantes según la fase que desee ejecutar.</li>
+                    </ol>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🧭 Aplicabilidad</h3>
+                        <ul>
+                            <li>Cuando necesitas ejecutar diversas operaciones independientes sobre todos los elementos de una estructura compleja (como un árbol sintáctico AST o un grafo Composite) sin contaminar las clases de los nodos.</li>
+                            <li>Cuando la jerarquía de elementos (tipos de nodos) es estable, pero frecuentemente necesitas agregar nuevos algoritmos o pases de análisis sobre ella.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🛠️ Cómo implementarlo</h3>
+                        <ol>
+                            <li>Declara la interfaz <code>Visitante</code> con un método <code>VisitarX</code> por cada tipo concreto de nodo.</li>
+                            <li>Declara la interfaz <code>Elemento</code> con el método <code>Aceptar(v Visitante)</code>.</li>
+                            <li>Implementa <code>Aceptar</code> en cada nodo concreto llamando a <code>v.VisitarX(n)</code>.</li>
+                            <li>Por cada nueva operación (evaluar, imprimir, chequear tipos), crea un struct visitante concreto e pásalo a la raíz del árbol.</li>
+                        </ol>
+                    </div>
+
+                    <div class="pros-cons">
+                        <div class="pros">
+                            <h3>Ventajas</h3>
+                            <ul>
+                                <li><strong>Principio Abierto/Cerrado (OCP):</strong> añade nuevas operaciones sobre el AST sin tocar los nodos existentes.</li>
+                                <li><strong>Principio de Responsabilidad Única (SRP):</strong> agrupa en un mismo visitante todas las variantes de un algoritmo.</li>
+                                <li>El visitante puede acumular estado útil a medida que recorre el árbol.</li>
+                            </ul>
+                        </div>
+                        <div class="cons">
+                            <h3>Desventajas</h3>
+                            <ul>
+                                <li>Si añades o eliminas un tipo de nodo en la jerarquía, debes actualizar la interfaz <code>Visitante</code> y todos los visitantes concretos.</li>
+                                <li>Los visitantes solo pueden acceder a los campos y métodos exportados de los elementos.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="glass-card mt-1">
+                        <h3>🔗 Relación con otros patrones</h3>
+                        <p><strong>Visitor</strong> es el compañero ideal de <strong>Composite</strong> (como un árbol AST) e <strong>Iterator</strong> para recorrer estructuras jerárquicas ejecutando operaciones tipadas, y puede verse como una versión más potente de <strong>Command</strong> capaz de operar sobre múltiples tipos de receptores.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide" data-section="Comportamiento · Visitor">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge comportamiento">🧠 Comportamiento</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Visitor en Go (AST de Expresiones)</h2>
+
+            <div class="two-cols-wide">
+                <div>
+                    <pre class="code-block tall" data-lang="go" data-label="comportamiento/visitor/main.go">package main
+
+import "fmt"
+
+// Visitante (Visitor): declara un método de visita por cada tipo concreto de nodo del AST.
+type VisitanteExpr interface {
+	VisitarNumero(n *Numero)
+	VisitarSuma(s *Suma)
+	VisitarMultiplicacion(m *Multiplicacion)
+}
+
+// Elemento (Element): nodo del AST que acepta un visitante (Double Dispatch).
+type Expr interface {
+	Aceptar(v VisitanteExpr)
+}
+
+// Elementos Concretos: nodos del árbol sintáctico abstracto (AST).
+type Numero struct{ Valor int }
+
+func (n *Numero) Aceptar(v VisitanteExpr) { v.VisitarNumero(n) }
+
+type Suma struct{ Izq, Der Expr }
+
+func (s *Suma) Aceptar(v VisitanteExpr) { v.VisitarSuma(s) }
+
+type Multiplicacion struct{ Izq, Der Expr }
+
+func (m *Multiplicacion) Aceptar(v VisitanteExpr) { v.VisitarMultiplicacion(m) }
+
+// Visitante Concreto 1: Evaluador de expresiones (acumula el resultado en una pila/campo).
+type Evaluador struct{ Resultado int }
+
+func (e *Evaluador) VisitarNumero(n *Numero) { e.Resultado = n.Valor }
+func (e *Evaluador) VisitarSuma(s *Suma) {
+	s.Izq.Aceptar(e)
+	izq := e.Resultado
+	s.Der.Aceptar(e)
+	e.Resultado = izq + e.Resultado
+}
+func (e *Evaluador) VisitarMultiplicacion(m *Multiplicacion) {
+	m.Izq.Aceptar(e)
+	izq := e.Resultado
+	m.Der.Aceptar(e)
+	e.Resultado = izq * e.Resultado
+}
+
+// Visitante Concreto 2: Impresor de árboles en notación infija parentizada.
+type ImpresorAST struct{ Salida string }
+
+func (i *ImpresorAST) VisitarNumero(n *Numero) {
+	i.Salida = fmt.Sprintf("%d", n.Valor)
+}
+func (i *ImpresorAST) VisitarSuma(s *Suma) {
+	s.Izq.Aceptar(i)
+	izq := i.Salida
+	s.Der.Aceptar(i)
+	i.Salida = fmt.Sprintf("(%s + %s)", izq, i.Salida)
+}
+func (i *ImpresorAST) VisitarMultiplicacion(m *Multiplicacion) {
+	m.Izq.Aceptar(i)
+	izq := i.Salida
+	m.Der.Aceptar(i)
+	i.Salida = fmt.Sprintf("(%s * %s)", izq, i.Salida)
+}
+
+func main() {
+	// Árbol AST para la expresión: (3 + 5) * 2
+	ast := &amp;Multiplicacion{
+		Izq: &amp;Suma{Izq: &amp;Numero{3}, Der: &amp;Numero{5}},
+		Der: &amp;Numero{2},
+	}
+
+	imp := &amp;ImpresorAST{}
+	ast.Aceptar(imp)
+	fmt.Println("Expresión AST :", imp.Salida)
+
+	eval := &amp;Evaluador{}
+	ast.Aceptar(eval)
+	fmt.Println("Resultado eval:", eval.Resultado)
+}</pre>
+                </div>
+
+                <div>
+                    <div class="glass-card">
+                        <h3>🔎 Explicación paso a paso</h3>
+                        <ol>
+                            <li>Los nodos del AST (<code>Numero</code>, <code>Suma</code>, <code>Multiplicacion</code>) implementan <code>Expr</code> con una sola línea: redirigir <code>Aceptar(v)</code> al método tipado de <code>VisitanteExpr</code>.</li>
+                            <li><code>ImpresorAST</code> recorre recursivamente los hijos izquierdo y derecho y construye la representación infija parentizada <code>((3 + 5) * 2)</code>.</li>
+                            <li><code>Evaluador</code> recorre el mismo árbol sin tocar los structs de los nodos y calcula el valor numérico <code>16</code>.</li>
+                        </ol>
+                    </div>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">Expresión AST : ((3 + 5) * 2)
+Resultado eval: 16</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática en Go</h3>
+                            <p>En compiladores escritos en Go (como el paquete estándar <code>go/ast</code> con <code>ast.Inspect</code>), además del patrón <em>Visitor</em> clásico con <em>Double Dispatch</em>, también es frecuente usar un <code>switch n := expr.(type)</code> (<em>type switch</em>) cuando el conjunto de nodos es cerrado, ya que Go no tiene sobrecarga de métodos por nombre.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/visitor" target="_blank">📖 Teoría basada en refactoring.guru — Visitor</a>
+                </div>
+            </div>
+        </div>
+    </div>

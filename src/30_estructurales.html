@@ -1,0 +1,1665 @@
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 1: ADAPTER
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Adapter — Teoría -->
+    <div class="slide" id="p-adapter" data-toc="Adapter" data-toc-group="Estructurales" data-section="Estructurales · Adapter">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Adapter</h2>
+            <p class="slide-subtitle">También llamado: Adaptador, Envoltorio, Wrapper</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Adapter</strong> es un patrón de diseño estructural que permite que objetos con <strong>interfaces incompatibles</strong> colaboren entre sí mediante un objeto intermediario que traduce las llamadas y formatos de datos.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina que tu aplicación financiera procesa datos bursátiles en formato <code>XML</code>, o que tu tienda virtual cobra usando una interfaz uniforme <code>ProcesadorPago</code> en dólares. De pronto necesitas integrar una excelente biblioteca de análisis o pasarela de pagos de un tercero, pero esa biblioteca externa solo acepta datos en <code>JSON</code> o importes en centavos enteros con otra firma de método.</p>
+                    <p>No puedes modificar la biblioteca externa (no tienes su código fuente o romperías a otros consumidores), y tampoco quieres ensuciar toda tu lógica de negocio con condicionales y conversiones acopladas al proveedor.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Crear un <strong>Adaptador</strong>: una estructura especial que actúa como traductor tras bambalinas. El adaptador:</p>
+                    <ol>
+                        <li>Implementa la <em>interfaz que el cliente ya conoce y espera</em>.</li>
+                        <li>Envuelve internamente una referencia al <em>objeto de servicio incompatible</em>.</li>
+                        <li>Al recibir una llamada del cliente, transforma los argumentos al formato, unidades y orden que el servicio espera, delega la ejecución y traduce la respuesta si hace falta.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🔌</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Cuando viajas de América o Europa con tu cargador de portátil a otro continente, la clavija física no entra en el tomacorriente de la pared. No compras otro computador ni cambias el cableado del hotel: colocas un <strong>adaptador de enchufe</strong> en medio que recibe tus patas planas de un lado y expone clavijas redondas del otro.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Adapter — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Adapter">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Adapter · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌──────────────┐        ┌──────────────────────────┐
+│ ① Cliente    │───────▶│    &lt;&lt;interface&gt;&gt;         │
+└──────────────┘        │ ② InterfazCliente        │
+                        │ + Metodo(datos)          │
+                        └─────────────△────────────┘
+                                      │ implementa
+                        ┌─────────────┴────────────┐
+                        │ ③ Adaptador              │
+                        │ - servicio: *Servicio    │
+                        │ + Metodo(datos)          │
+                        └─────────────┬────────────┘
+                                      │ delega y traduce
+                                      ▼
+                        ┌──────────────────────────┐
+                        │ ④ ServicioIncompatible   │
+                        │ + MetodoEspecial(otro)   │
+                        └──────────────────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Cliente:</strong> contiene la lógica de negocio del programa y solo conoce la interfaz objetivo.</li>
+                        <li><strong>Interfaz con el Cliente:</strong> protocolo que las estructuras deben cumplir para colaborar con el cliente.</li>
+                        <li><strong>Adaptador:</strong> implementa la interfaz del cliente y envuelve al servicio, traduciendo llamadas y formatos.</li>
+                        <li><strong>Servicio (Adaptee):</strong> biblioteca de terceros o código legado útil pero con una interfaz incompatible.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Cuando quieres usar un paquete existente (legado o de terceros), pero su interfaz no coincide con el resto de tu diseño.</li>
+                        <li>Cuando necesitas reutilizar varios tipos existentes que carecen de cierta funcionalidad común y no puedes modificar su código original.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Identifica el <em>Servicio</em> útil que no puedes cambiar y el <em>Cliente</em> que lo necesita.</li>
+                        <li>Declara la interfaz que el cliente espera consumir.</li>
+                        <li>Crea la estructura adaptadora que implemente dicha interfaz y guarde un campo con referencia al servicio.</li>
+                        <li>Implementa cada método de la interfaz traduciendo tipos/formatos y delegando al servicio.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li><strong>Responsabilidad Única (SRP):</strong> separa el código de conversión de datos de la lógica de negocio.</li>
+                        <li><strong>Abierto/Cerrado (OCP):</strong> puedes añadir nuevos adaptadores para otros proveedores sin tocar el cliente.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Aumenta la complejidad general al introducir nuevas interfaces y estructuras envoltorio; si controlas el servicio, a veces es más simple cambiarlo directamente.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Adapter</strong> cambia la interfaz de un objeto existente para hacerla compatible; <strong>Decorator</strong> mantiene o amplía la misma interfaz añadiendo responsabilidades; <strong>Proxy</strong> conserva exactamente la misma interfaz controlando el acceso; <strong>Facade</strong> define una interfaz nueva y simple para todo un subsistema completo; y <strong>Bridge</strong> se diseña por anticipado para separar abstracción de implementación.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Adapter — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Adapter">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Adapter en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="adapter/main.go">package main
+
+import "fmt"
+
+// 1. Interfaz con el Cliente: protocolo que el código cliente espera usar.
+type ProcesadorPago interface {
+	Cobrar(montoUSD float64) string
+}
+
+// Servicio compatible existente en nuestra aplicación.
+type PasarelaLocal struct{}
+
+func (p PasarelaLocal) Cobrar(montoUSD float64) string {
+	return fmt.Sprintf("[PasarelaLocal] Cobro directo procesado: $%.2f USD", montoUSD)
+}
+
+// 2. Servicio (incompatible): SDK externo de un tercero que no podemos modificar.
+// Usa otro nombre de método, recibe centavos enteros y exige código de moneda.
+type SDKStripeExterno struct {
+	APIKey string
+}
+
+func (s *SDKStripeExterno) CreateChargeInCents(cents int, currency string) string {
+	return fmt.Sprintf("[Stripe SDK key=%s] Charge OK: %d cents (%s)", s.APIKey, cents, currency)
+}
+
+// 3. Adaptador: implementa ProcesadorPago y envuelve (compone) *SDKStripeExterno.
+type AdaptadorStripe struct {
+	servicio *SDKStripeExterno
+	moneda   string
+}
+
+func NuevoAdaptadorStripe(sdk *SDKStripeExterno, moneda string) *AdaptadorStripe {
+	return &amp;AdaptadorStripe{servicio: sdk, moneda: moneda}
+}
+
+// Cobrar traduce la llamada del cliente al formato y firma que espera el SDK externo.
+func (a *AdaptadorStripe) Cobrar(montoUSD float64) string {
+	centavos := int(montoUSD * 100) // Conversión de formato: dólares (float64) -&gt; centavos (int)
+	respuestaSDK := a.servicio.CreateChargeInCents(centavos, a.moneda)
+	return fmt.Sprintf("[Adaptador -&gt; Stripe] %s", respuestaSDK)
+}
+
+// 4. Cliente: trabaja únicamente con la interfaz ProcesadorPago sin acoplarse al SDK.
+func FinalizarCompra(carrito string, total float64, pasarela ProcesadorPago) {
+	fmt.Printf("Cliente pagando %s ($%.2f):\n", carrito, total)
+	fmt.Println("  ", pasarela.Cobrar(total))
+}
+
+func main() {
+	// Uso con el servicio local que ya cumple la interfaz
+	local := PasarelaLocal{}
+	FinalizarCompra("Curso de Compiladores", 29.99, local)
+
+	// Uso con el servicio incompatible a través del Adaptador
+	sdkExterno := &amp;SDKStripeExterno{APIKey: "sk_live_987"}
+	adaptador := NuevoAdaptadorStripe(sdkExterno, "USD")
+	FinalizarCompra("Suscripción Anual Pro", 149.50, adaptador)
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li><code>FinalizarCompra</code> (cliente) exige un <code>ProcesadorPago</code> con el método <code>Cobrar(float64)</code>.</li>
+                        <li><code>SDKStripeExterno</code> no cumple esa interfaz: expone <code>CreateChargeInCents(int, string)</code>.</li>
+                        <li><code>AdaptadorStripe</code> envuelve un puntero <code>*SDKStripeExterno</code>, convierte los dólares <code>float64</code> a centavos <code>int</code> e invoca al SDK.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">Cliente pagando Curso de Compiladores ($29.99):
+   [PasarelaLocal] Cobro directo procesado: $29.99 USD
+Cliente pagando Suscripción Anual Pro ($149.50):
+   [Adaptador -&gt; Stripe] [Stripe SDK key=sk_live_987] Charge OK: 14950 cents (USD)</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>Como las interfaces en Go se satisfacen <strong>implícitamente</strong>, el consumidor puede definir pequeñas interfaces en su propio paquete. Además, la biblioteca estándar usa tipos función como adaptadores: <code>http.HandlerFunc(miFuncion)</code> adapta una función ordinaria a la interfaz <code>http.Handler</code>.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/adapter" target="_blank">📖 Teoría basada en refactoring.guru — Adapter</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 2: BRIDGE
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Bridge — Teoría -->
+    <div class="slide" id="p-bridge" data-toc="Bridge" data-toc-group="Estructurales" data-section="Estructurales · Bridge">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Bridge</h2>
+            <p class="slide-subtitle">También llamado: Puente</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Bridge</strong> es un patrón de diseño estructural que permite dividir una clase grande, o un grupo de clases estrechamente relacionadas, en <strong>dos jerarquías separadas</strong> —<em>abstracción</em> e <em>implementación</em>— para que puedan evolucionar de manera independiente.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Supón que tienes una jerarquía de figuras geométricas (<code>Círculo</code>, <code>Cuadrado</code>) y quieres agregarles colores (<code>Rojo</code>, <code>Azul</code>) mediante herencia. Terminas creando combinaciones como <code>CírculoRojo</code>, <code>CírculoAzul</code>, <code>CuadradoRojo</code>, <code>CuadradoAzul</code>.</p>
+                    <p>Cuando extiendes un diseño en <strong>dos dimensiones ortogonales</strong> (por ejemplo: <em>Forma × Color</em>, o <em>Control Remoto × Dispositivo</em>, o <em>GUI × Sistema Operativo</em>), el número de tipos explota en progresión geométrica (<code>N × M</code>) y cualquier cambio obliga a tocar decenas de estructuras.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Sustituir la combinación rígida por <strong>composición de objetos</strong>:</p>
+                    <ol>
+                        <li>Extraer una de las dimensiones a una jerarquía aparte llamada <strong>Implementación</strong> (p. ej. <code>Color</code> o <code>Dispositivo</code>).</li>
+                        <li>Mantener la capa de control de alto nivel como <strong>Abstracción</strong> (p. ej. <code>Forma</code> o <code>ControlRemoto</code>), que guarda un campo con referencia a la interfaz de implementación.</li>
+                        <li>Esa referencia actúa como el <strong>puente (bridge)</strong>: ahora puedes añadir N abstracciones y M implementaciones creando solo <code>N + M</code> tipos en lugar de <code>N × M</code>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">📺</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Un <strong>control remoto universal</strong> (abstracción: básico, avanzado, con pantalla táctil) y los <strong>aparatos electrónicos</strong> (implementación: televisor, radio, proyector). No fabricas un "ControlAvanzadoExclusivoParaRadioSony": el control remoto define botones de alto nivel (subir volumen, silenciar) y se comunica mediante un protocolo común infrarrojo con cualquier dispositivo compatible.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Bridge — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Bridge">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Bridge · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌─────────────────────────┐    puente (campo)   ┌─────────────────────────┐
+│ ① Abstracción           │◇───────────────────▶│    &lt;&lt;interface&gt;&gt;        │
+│ - impl: Implementacion  │                     │ ② Implementación        │
+│ + OperacionAltoNivel()  │                     │ + PrimitivaA()          │
+└────────────△────────────┘                     │ + PrimitivaB()          │
+             │ embebe / extiende                └────────────△────────────┘
+┌────────────┴────────────┐                                  │ implementa
+│ ④ AbstracciónRefinada   │                     ┌────────────┴────────────┐
+│ + OperacionExtra()      │                     │ ③ ImplConcreta (TV/Radio│
+└─────────────────────────┘                     └─────────────────────────┘
+             ▲
+             │ usa
+       ┌─────┴──────┐
+       │ ⑤ Cliente  │
+       └────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Abstracción:</strong> ofrece lógica de control de alto nivel y delega el trabajo de bajo nivel al objeto de implementación.</li>
+                        <li><strong>Implementación:</strong> interfaz común a todas las plataformas concretas con operaciones primitivas.</li>
+                        <li><strong>Implementaciones Concretas:</strong> contienen el código específico de cada plataforma o motor subyacente.</li>
+                        <li><strong>Abstracciones Refinadas:</strong> variantes de la lógica de control de alto nivel.</li>
+                        <li><strong>Cliente:</strong> vincula la abstracción con una implementación y trabaja con la abstracción.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Cuando quieres dividir y organizar una estructura monolítica que tiene múltiples variantes de una funcionalidad (p. ej. distintos motores de base de datos o backends de compilación).</li>
+                        <li>Cuando necesitas extender un sistema en varias dimensiones ortogonales (independientes).</li>
+                        <li>Cuando necesitas cambiar la implementación subyacente en tiempo de ejecución.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Identifica las dimensiones ortogonales (abstracción/plataforma, dominio/infraestructura, frontend/backend).</li>
+                        <li>Declara las operaciones primitivas en la interfaz <em>Implementación</em> y crea sus tipos concretos.</li>
+                        <li>Crea la <em>Abstracción</em> con un campo de tipo interfaz <em>Implementación</em> y delega en él.</li>
+                        <li>El cliente inyecta la implementación concreta al construir la abstracción.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Evita la explosión combinatoria de tipos (<code>N + M</code> en vez de <code>N × M</code>).</li>
+                        <li>Cumple <strong>OCP</strong> y <strong>SRP</strong>: evolucionas la lógica de alto nivel y los detalles de plataforma por separado.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Puede complicar innecesariamente el código si se aplica a una clase muy cohesionada que solo varía en una dimensión.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Bridge</strong> se diseña desde el principio para separar jerarquías independientes, mientras que <strong>Adapter</strong> se aplica a posteriori para encajar tipos incompatibles. Su estructura de delegación se parece a <strong>Strategy</strong>, pero Bridge abarca dos jerarquías completas (estructural) mientras Strategy intercambia algoritmos puntuales (comportamiento). Puede combinarse con <strong>Abstract Factory</strong> para instanciar pares compatibles.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Bridge — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Bridge">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Bridge en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="bridge/main.go">package main
+
+import "fmt"
+
+// 1. Implementación (interfaz de plataforma): operaciones primitivas de bajo nivel.
+type Dispositivo interface {
+	EstaEncendido() bool
+	Encender()
+	Apagar()
+	Volumen() int
+	FijarVolumen(porcentaje int)
+	Nombre() string
+}
+
+// 2. Implementación Concreta A: Televisor.
+type Televisor struct {
+	encendido bool
+	volumen   int
+}
+
+func (t *Televisor) EstaEncendido() bool     { return t.encendido }
+func (t *Televisor) Encender()               { t.encendido = true; fmt.Println("  [TV] Encendido") }
+func (t *Televisor) Apagar()                 { t.encendido = false; fmt.Println("  [TV] Apagado") }
+func (t *Televisor) Volumen() int            { return t.volumen }
+func (t *Televisor) FijarVolumen(v int)      { t.volumen = v; fmt.Printf("  [TV] Volumen = %d%%\n", t.volumen) }
+func (t *Televisor) Nombre() string          { return "Smart TV 4K" }
+
+// 2. Implementación Concreta B: Radio.
+type Radio struct {
+	encendido bool
+	volumen   int
+}
+
+func (r *Radio) EstaEncendido() bool     { return r.encendido }
+func (r *Radio) Encender()               { r.encendido = true; fmt.Println("  [Radio] Encendida") }
+func (r *Radio) Apagar()                 { r.encendido = false; fmt.Println("  [Radio] Apagada") }
+func (r *Radio) Volumen() int            { return r.volumen }
+func (r *Radio) FijarVolumen(v int)      { r.volumen = v; fmt.Printf("  [Radio] Volumen = %d%%\n", r.volumen) }
+func (r *Radio) Nombre() string          { return "Radio FM Vintage" }
+
+// 3. Abstracción: control de alto nivel que contiene el "puente" (dispositivo).
+type ControlRemoto struct {
+	dispositivo Dispositivo
+}
+
+func NuevoControlRemoto(d Dispositivo) *ControlRemoto {
+	return &amp;ControlRemoto{dispositivo: d}
+}
+
+func (c *ControlRemoto) BotonEncendido() {
+	fmt.Printf("Control -&gt; alternando energía en %s\n", c.dispositivo.Nombre())
+	if c.dispositivo.EstaEncendido() {
+		c.dispositivo.Apagar()
+	} else {
+		c.dispositivo.Encender()
+	}
+}
+
+func (c *ControlRemoto) SubirVolumen() {
+	c.dispositivo.FijarVolumen(c.dispositivo.Volumen() + 15)
+}
+
+// 4. Abstracción Refinada: extiende la abstracción por composición (embedding).
+type ControlAvanzado struct {
+	*ControlRemoto
+}
+
+func NuevoControlAvanzado(d Dispositivo) *ControlAvanzado {
+	return &amp;ControlAvanzado{ControlRemoto: NuevoControlRemoto(d)}
+}
+
+func (ca *ControlAvanzado) Silenciar() {
+	fmt.Printf("Control Avanzado -&gt; silenciando %s\n", ca.dispositivo.Nombre())
+	ca.dispositivo.FijarVolumen(0)
+}
+
+func main() {
+	tv := &amp;Televisor{volumen: 30}
+	controlBasico := NuevoControlRemoto(tv)
+	controlBasico.BotonEncendido()
+	controlBasico.SubirVolumen()
+
+	radio := &amp;Radio{volumen: 50}
+	controlPro := NuevoControlAvanzado(radio)
+	controlPro.BotonEncendido()
+	controlPro.SubirVolumen()
+	controlPro.Silenciar()
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li><code>Dispositivo</code> define las operaciones primitivas que cumplen tanto <code>Televisor</code> como <code>Radio</code>.</li>
+                        <li><code>ControlRemoto</code> guarda el campo <code>dispositivo Dispositivo</code> (el puente) y construye operaciones de alto nivel.</li>
+                        <li><code>ControlAvanzado</code> embebe <code>*ControlRemoto</code> para reutilizar sus métodos y añade <code>Silenciar()</code>.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">Control -&gt; alternando energía en Smart TV 4K
+  [TV] Encendido
+  [TV] Volumen = 45%
+Control -&gt; alternando energía en Radio FM Vintage
+  [Radio] Encendida
+  [Radio] Volumen = 65%
+Control Avanzado -&gt; silenciando Radio FM Vintage
+  [Radio] Volumen = 0%</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En Go no hay herencia de clases: las <strong>Abstracciones Refinadas</strong> se crean mediante <em>struct embedding</em> (<code>*ControlRemoto</code> dentro de <code>ControlAvanzado</code>), promoviendo automáticamente los métodos base mientras el campo interfaz <code>Dispositivo</code> actúa como puente.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/bridge" target="_blank">📖 Teoría basada en refactoring.guru — Bridge</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 3: COMPOSITE
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Composite — Teoría -->
+    <div class="slide" id="p-composite" data-toc="Composite" data-toc-group="Estructurales" data-section="Estructurales · Composite">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Composite</h2>
+            <p class="slide-subtitle">También llamado: Objeto compuesto, Object Tree</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Composite</strong> es un patrón de diseño estructural que permite componer objetos en <strong>estructuras de árbol</strong> y trabajar con esas estructuras compuestas exactamente igual que si fueran objetos individuales.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina un sistema de pedidos con <code>Productos</code> y <code>Cajas</code>, o un sistema de archivos con <code>Archivos</code> y <code>Carpetas</code>, o un árbol sintáctico abstracto (AST) en un compilador. Una caja puede contener productos simples pero también cajas más pequeñas, que a su vez contienen más cajas.</p>
+                    <p>Si el código cliente intenta calcular el precio o tamaño total distinguiendo manualmente tipos concretos y niveles de anidación con bucles y condicionales (<code>if esCaja ...</code>), el código se vuelve frágil y acoplado a la estructura interna del árbol.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Definir una <strong>interfaz Componente común</strong> para los objetos simples (<em>Hojas</em>) y los contenedores complejos (<em>Compuestos</em>):</p>
+                    <ul>
+                        <li>En una <strong>Hoja</strong> (producto o archivo), el método devuelve directamente su valor o realiza el trabajo base.</li>
+                        <li>En un <strong>Contenedor</strong> (caja o carpeta), el método recorre recursivamente todos sus hijos (que son de tipo <code>Componente</code>), les delega la llamada y agrega los resultados.</li>
+                    </ul>
+                    <p>Para el cliente no hay diferencia entre pedir el tamaño de un archivo suelto o de la carpeta raíz completa.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🪖</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Los <strong>ejércitos</strong> se organizan como un árbol jerárquico: un ejército contiene divisiones, las divisiones contienen brigadas, las brigadas pelotones, los pelotones escuadrones y los escuadrones soldados individuales (hojas). Cuando se da una orden en la cima, cada nivel la transmite recursivamente a sus subordinados hasta que cada soldado ejecuta la acción.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Composite — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Composite">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Composite · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌────────────┐          ┌────────────────────────────┐
+│ ④ Cliente  │─────────▶│     &lt;&lt;interface&gt;&gt;          │◀────────────┐
+└────────────┘          │ ① Componente               │             │
+                        │ + Ejecutar()               │             │
+                        └──────△──────────────△──────┘             │
+                               │              │                    │ contiene
+                  ┌────────────┴───┐    ┌─────┴────────────────┐   │ 0..*
+                  │ ② Hoja         │    │ ③ Contenedor         │◇──┘
+                  │ + Ejecutar()   │    │ - hijos: []Componente│
+                  └────────────────┘    │ + Agregar(c)         │
+                                        │ + Ejecutar()         │
+                                        └──────────────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Componente:</strong> interfaz que declara las operaciones comunes tanto para nodos simples como para contenedores del árbol.</li>
+                        <li><strong>Hoja (Leaf):</strong> elemento básico sin subelementos; realiza el trabajo real directamente.</li>
+                        <li><strong>Contenedor (Composite):</strong> almacena un slice de <code>Componente</code> (hojas u otros contenedores) y delega las operaciones recursivamente a sus hijos.</li>
+                        <li><strong>Cliente:</strong> manipula todos los elementos uniformemente a través de la interfaz <code>Componente</code>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Cuando el modelo central de tu dominio puede representarse como una estructura jerárquica en forma de árbol (AST de un compilador, DOM HTML, sistema de archivos, menús UI).</li>
+                        <li>Cuando quieres que el código cliente trate objetos simples y composiciones complejas de forma transparente sin distinguir sus tipos concretos.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Verifica que tu dominio se divida naturalmente en hojas simples y contenedores recursivos.</li>
+                        <li>Declara la interfaz <em>Componente</em> con los métodos comunes.</li>
+                        <li>Implementa las estructuras <em>Hoja</em> con el comportamiento elemental.</li>
+                        <li>Implementa la estructura <em>Contenedor</em> con un slice <code>[]Componente</code>, métodos para añadir hijos y delegación recursiva en cada operación.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Aprovecha el polimorfismo y la recursión para recorrer árboles complejos sin condicionales de tipo.</li>
+                        <li><strong>Abierto/Cerrado (OCP):</strong> puedes introducir nuevos tipos de hojas o contenedores sin romper el cliente.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Si las hojas y los contenedores difieren demasiado en comportamiento, diseñar una interfaz común limpia puede obligar a generalizar en exceso.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Composite</strong> y <strong>Decorator</strong> comparten composición recursiva, pero Decorator solo envuelve un único hijo y le agrega comportamiento, mientras Composite agrupa múltiples hijos y recapitula sus resultados. Suele combinarse con <strong>Iterator</strong> (recorrer el árbol), <strong>Visitor</strong> (operar sobre nodos de un AST), <strong>Builder</strong> (construir árboles) y <strong>Flyweight</strong> (compartir hojas repetidas).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Composite — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Composite">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Composite en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="composite/main.go">package main
+
+import "fmt"
+
+// 1. Componente (interfaz común para hojas simples y contenedores complejos).
+type NodoSistema interface {
+	Nombre() string
+	TamanoKB() int
+	Mostrar(indent string)
+}
+
+// 2. Hoja (Leaf): elemento básico del árbol que no tiene subelementos.
+type Archivo struct {
+	nombre   string
+	tamanoKB int
+}
+
+func NuevoArchivo(nombre string, tamanoKB int) *Archivo {
+	return &amp;Archivo{nombre: nombre, tamanoKB: tamanoKB}
+}
+
+func (a *Archivo) Nombre() string   { return a.nombre }
+func (a *Archivo) TamanoKB() int    { return a.tamanoKB }
+func (a *Archivo) Mostrar(ind string) {
+	fmt.Printf("%s📄 %s (%d KB)\n", ind, a.nombre, a.tamanoKB)
+}
+
+// 3. Contenedor / Compuesto (Composite): agrupa hojas u otros contenedores.
+type Carpeta struct {
+	nombre string
+	hijos  []NodoSistema
+}
+
+func NuevaCarpeta(nombre string) *Carpeta {
+	return &amp;Carpeta{nombre: nombre}
+}
+
+func (c *Carpeta) Agregar(nodos ...NodoSistema) {
+	c.hijos = append(c.hijos, nodos...)
+}
+
+func (c *Carpeta) Nombre() string { return c.nombre }
+
+// TamanoKB delega recursivamente el cálculo a cada hijo del subárbol.
+func (c *Carpeta) TamanoKB() int {
+	total := 0
+	for _, h := range c.hijos {
+		total += h.TamanoKB()
+	}
+	return total
+}
+
+func (c *Carpeta) Mostrar(ind string) {
+	fmt.Printf("%s📁 %s/ [total: %d KB]\n", ind, c.nombre, c.TamanoKB())
+	for _, h := range c.hijos {
+		h.Mostrar(ind + "   ")
+	}
+}
+
+// 4. Cliente: trata igual a un archivo suelto que a todo un árbol de carpetas.
+func ImprimirResumen(n NodoSistema) {
+	fmt.Printf("Resumen de '%s' -&gt; %d KB\n", n.Nombre(), n.TamanoKB())
+}
+
+func main() {
+	src := NuevaCarpeta("src")
+	src.Agregar(
+		NuevoArchivo("lexer.go", 18),
+		NuevoArchivo("parser.go", 42),
+	)
+
+	raiz := NuevaCarpeta("compilador")
+	raiz.Agregar(
+		NuevoArchivo("go.mod", 2),
+		NuevoArchivo("README.md", 8),
+		src,
+	)
+
+	raiz.Mostrar("")
+	fmt.Println("---")
+	ImprimirResumen(NuevoArchivo("lexer.go", 18)) // Hoja individual
+	ImprimirResumen(raiz)                         // Árbol compuesto completo
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li><code>NodoSistema</code> declara la interfaz común con <code>Nombre()</code>, <code>TamanoKB()</code> y <code>Mostrar()</code>.</li>
+                        <li><code>Archivo</code> (Hoja) devuelve su tamaño directo.</li>
+                        <li><code>Carpeta</code> (Compuesto) guarda <code>hijos []NodoSistema</code> y suma recursivamente <code>h.TamanoKB()</code>.</li>
+                        <li><code>ImprimirResumen</code> recibe tanto un <code>*Archivo</code> como la <code>*Carpeta</code> raíz sin cambiar una línea.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">📁 compilador/ [total: 70 KB]
+   📄 go.mod (2 KB)
+   📄 README.md (8 KB)
+   📁 src/ [total: 60 KB]
+      📄 lexer.go (18 KB)
+      📄 parser.go (42 KB)
+---
+Resumen de 'lexer.go' -&gt; 18 KB
+Resumen de 'compilador' -&gt; 70 KB</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En Go respetamos el <strong>Principio de Segregación de Interfaces (ISP)</strong> dejando <code>Agregar(...NodoSistema)</code> solo en <code>*Carpeta</code> y no en la interfaz <code>NodoSistema</code>, evitando métodos vacíos o con <code>panic</code> en las hojas. En compiladores en Go (<code>go/ast</code>), las expresiones binarias y literales forman un Composite clásico.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/composite" target="_blank">📖 Teoría basada en refactoring.guru — Composite</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 4: DECORATOR
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Decorator — Teoría -->
+    <div class="slide" id="p-decorator" data-toc="Decorator" data-toc-group="Estructurales" data-section="Estructurales · Decorator">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Decorator</h2>
+            <p class="slide-subtitle">También llamado: Decorador, Envoltorio, Wrapper</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Decorator</strong> es un patrón de diseño estructural que permite <strong>añadir funcionalidades a objetos dinámicamente</strong> colocándolos dentro de objetos envoltorio (<em>wrappers</em>) especiales que implementan la misma interfaz.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina una biblioteca de notificaciones que empieza enviando solo correos electrónicos (<code>Notificador</code>). Luego los usuarios piden SMS, Slack, Telegram, cifrado y formato urgente. Si intentas crear una subclase para cada combinación posible (<code>NotificadorEmailConSMSYSlack</code>, <code>NotificadorEmailConSMS</code>, etc.), sufres una <strong>explosión combinatoria</strong>.</p>
+                    <p>Además, la herencia es estática: no permite apilar, quitar o decidir qué canales combinar en tiempo de ejecución según la configuración del usuario.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Usar <strong>composición recursiva mediante envoltorios (wrappers)</strong>:</p>
+                    <ol>
+                        <li>Tanto el componente base como cada decorador implementan la <strong>misma interfaz</strong> (p. ej. <code>Notificador</code>).</li>
+                        <li>Cada decorador guarda un campo <code>envuelto</code> de ese tipo interfaz.</li>
+                        <li>Al recibir una llamada, el decorador ejecuta su lógica extra (antes o después) y delega la llamada al objeto envuelto. Así puedes apilar tantas capas como quieras como una muñeca rusa.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🧥</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p><strong>Vestirse por capas</strong> cuando hace frío: tú eres el componente base; primero te pones un suéter, encima una chaqueta térmica y, si llueve, un impermeable encima. Cada prenda te "envuelve" y extiende tu protección sin modificar tu cuerpo, y puedes combinarlas o quitártelas dinámicamente en cualquier momento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Decorator — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Decorator">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Decorator · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌────────────┐          ┌────────────────────────────┐
+│ ⑤ Cliente  │─────────▶│     &lt;&lt;interface&gt;&gt;          │◀────────────┐
+└────────────┘          │ ① Componente               │             │
+                        │ + Enviar(msg)              │             │
+                        └──────△──────────────△──────┘             │
+                               │              │                    │ envuelve
+                  ┌────────────┴───┐    ┌─────┴────────────────┐   │ (1)
+                  │ ② CompConcreto │    │ ③ DecoradorBase      │◇──┘
+                  │ (Email)        │    │ - envuelto:Componente│
+                  └────────────────┘    └──────────△───────────┘
+                                                   │
+                                        ┌──────────┴───────────┐
+                                        │ ④ DecoradoresConcr.  │
+                                        │ (SMS, Slack, Urgente)│
+                                        └──────────────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Componente:</strong> interfaz común tanto para el objeto envuelto como para todos los decoradores.</li>
+                        <li><strong>Componente Concreto:</strong> define el comportamiento básico que será envuelto y extendido.</li>
+                        <li><strong>Decorador Base:</strong> referencia un <code>Componente</code> envuelto y le delega las operaciones.</li>
+                        <li><strong>Decoradores Concretos:</strong> añaden responsabilidades antes y/o después de delegar al objeto envuelto.</li>
+                        <li><strong>Cliente:</strong> ensambla la pila de decoradores y la usa mediante la interfaz común.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Cuando necesitas asignar responsabilidades adicionales a objetos en tiempo de ejecución sin afectar al código cliente que los utiliza.</li>
+                        <li>Cuando quieres combinar comportamientos ortogonales (logging, métricas, compresión, cifrado, reintentos) mediante capas apilables.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Declara la interfaz <em>Componente</em> con los métodos compartidos por el objeto base y las capas opcionales.</li>
+                        <li>Crea el <em>Componente Concreto</em> con la funcionalidad base.</li>
+                        <li>Crea cada <em>Decorador</em> implementando la misma interfaz y guardando un campo <code>envuelto Componente</code>.</li>
+                        <li>En el método del decorador, agrega el comportamiento extra antes o después de llamar a <code>d.envuelto.Metodo()</code>.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Extiende y combina comportamientos en tiempo de ejecución sin crear subclases.</li>
+                        <li>Cumple <strong>SRP</strong>: cada preocupación transversal (SMS, Slack, formato) vive en su propio tipo pequeño.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Es difícil eliminar un wrapper intermedio específico una vez armada la pila.</li>
+                        <li>El resultado puede depender del orden exacto en que se apilan los decoradores.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Decorator</strong> mantiene la misma interfaz y permite apilar capas recursivamente; <strong>Adapter</strong> cambia la interfaz. Se parece a <strong>Chain of Responsibility</strong>, pero en Decorator todas las capas se ejecutan sin cortar el flujo. Mientras <strong>Decorator</strong> cambia la "piel" externa del objeto, <strong>Strategy</strong> cambia sus "entrañas". A diferencia de <strong>Proxy</strong>, en Decorator el cliente controla explícitamente qué capas apilar.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Decorator — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Decorator">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Decorator en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="decorator/main.go">package main
+
+import (
+	"fmt"
+	"strings"
+)
+
+// 1. Componente: interfaz común para el objeto envuelto y para todos los decoradores.
+type Notificador interface {
+	Enviar(mensaje string) string
+}
+
+// 2. Componente Concreto: define el comportamiento base (enviar por correo).
+type NotificadorEmail struct {
+	Destinatario string
+}
+
+func (n NotificadorEmail) Enviar(mensaje string) string {
+	return fmt.Sprintf("📧 Email a &lt;%s&gt;: %q", n.Destinatario, mensaje)
+}
+
+// 3. Decorador Concreto A: envuelve un Notificador y añade envío por SMS.
+type DecoradorSMS struct {
+	envuelto Notificador
+	telefono string
+}
+
+func ConSMS(n Notificador, telefono string) Notificador {
+	return DecoradorSMS{envuelto: n, telefono: telefono}
+}
+
+func (d DecoradorSMS) Enviar(mensaje string) string {
+	previo := d.envuelto.Enviar(mensaje)
+	return fmt.Sprintf("%s\n📱 SMS a [%s]: %q", previo, d.telefono, mensaje)
+}
+
+// 4. Decorador Concreto B: añade notificación a un canal de Slack.
+type DecoradorSlack struct {
+	envuelto Notificador
+	canal    string
+}
+
+func ConSlack(n Notificador, canal string) Notificador {
+	return DecoradorSlack{envuelto: n, canal: canal}
+}
+
+func (d DecoradorSlack) Enviar(mensaje string) string {
+	previo := d.envuelto.Enviar(mensaje)
+	return fmt.Sprintf("%s\n💬 Slack [%s]: %q", previo, d.canal, mensaje)
+}
+
+// 5. Decorador Concreto C: transforma el mensaje antes de delegarlo a la pila.
+type DecoradorUrgente struct {
+	envuelto Notificador
+}
+
+func ConFormatoUrgente(n Notificador) Notificador {
+	return DecoradorUrgente{envuelto: n}
+}
+
+func (d DecoradorUrgente) Enviar(mensaje string) string {
+	transformado := "[URGENTE] " + strings.ToUpper(mensaje)
+	return d.envuelto.Enviar(transformado)
+}
+
+func main() {
+	// Pila de decoradores: Urgente -&gt; Slack -&gt; SMS -&gt; Email base
+	var alerta Notificador = NotificadorEmail{Destinatario: "ops@empresa.co"}
+	alerta = ConSMS(alerta, "+57-300-1234567")
+	alerta = ConSlack(alerta, "#incidentes-prod")
+	alerta = ConFormatoUrgente(alerta)
+
+	fmt.Println(alerta.Enviar("uso de CPU al 98% en nodo principal"))
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li><code>NotificadorEmail</code> es la base de la pila.</li>
+                        <li><code>ConSMS</code> y <code>ConSlack</code> envuelven cualquier <code>Notificador</code> y agregan su propio envío después de delegar.</li>
+                        <li><code>ConFormatoUrgente</code> actúa <em>antes</em> de delegar: convierte el texto a mayúsculas y lo pasa a toda la pila interior.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">📧 Email a &lt;ops@empresa.co&gt;: "[URGENTE] USO DE CPU AL 98% EN NODO PRINCIPAL"
+📱 SMS a [+57-300-1234567]: "[URGENTE] USO DE CPU AL 98% EN NODO PRINCIPAL"
+💬 Slack [#incidentes-prod]: "[URGENTE] USO DE CPU AL 98% EN NODO PRINCIPAL"</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En Go no hace falta una "clase Decoradora Base" abstracta: cada decorador compone directamente la interfaz. La biblioteca estándar de Go está llena de Decorators: <code>bufio.NewReader(r)</code> y <code>gzip.NewWriter(w)</code> decoran <code>io.Reader</code>/<code>io.Writer</code>, y los middlewares HTTP <code>func(http.Handler) http.Handler</code> son decoradores puros.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/decorator" target="_blank">📖 Teoría basada en refactoring.guru — Decorator</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 5: FACADE
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Facade — Teoría -->
+    <div class="slide" id="p-facade" data-toc="Facade" data-toc-group="Estructurales" data-section="Estructurales · Facade">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Facade</h2>
+            <p class="slide-subtitle">También llamado: Fachada</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Facade</strong> es un patrón de diseño estructural que proporciona una <strong>interfaz simplificada y de alto nivel</strong> a una biblioteca, un framework o cualquier subsistema complejo compuesto por múltiples objetos.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina que tu aplicación necesita realizar una operación como procesar un pedido en línea o convertir un video o compilar código fuente. Para lograrlo debe interactuar con decenas de objetos de un subsistema: inicializarlos, controlar sus dependencias y llamar a sus métodos en un orden estricto.</p>
+                    <p>Si cada cliente hace esa orquestación por su cuenta, tu lógica de negocio queda fuertemente acoplada a los detalles internos del subsistema y cualquier cambio se propaga por todo el proyecto.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Crear una estructura <strong>Fachada (Facade)</strong> que ofrezca unos pocos métodos directos con exactamente lo que la mayoría de los clientes necesitan (por ejemplo, <code>ComprarConUnClic()</code> o <code>ConvertirVideo()</code>).</p>
+                    <p>La fachada conoce a qué piezas internas del subsistema dirigirse y en qué orden coordinarlas, aislando al cliente de la complejidad interna sin impedir que un usuario avanzado acceda al subsistema directamente si lo requiere.</p>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">☎️</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Cuando haces un pedido telefónico a una tienda, el <strong>operador de atención al cliente</strong> es tu <em>fachada</em>. No hablas por separado con la bodega de inventario, la pasarela antifraude del banco, el departamento de facturación y la empresa de mensajería: hablas un minuto con el operador y él coordina todos los departamentos internos por ti.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Facade — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Facade">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Facade · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌────────────┐          ┌──────────────────────────┐
+│ ④ Cliente  │─────────▶│ ① Fachada (Facade)       │
+└────────────┘          │ + OperacionSimple()      │
+                        └──┬──────┬──────┬──────┬──┘
+                           │      │      │      │
+             ┌─────────────┘      │      │      └─────────────┐
+             ▼                    ▼      ▼                    ▼
+    ┌─────────────────┐  ┌────────────┐ ┌────────────┐ ┌─────────────┐
+    │ ③ Subsistema A  │  │ ③ Subsis B │ │ ③ Subsis C │ │ ② Fachada   │
+    │ (Inventario)    │  │ (Fraude)   │ │ (Cobros)   │ │   Adicional │
+    └─────────────────┘  └────────────┘ └────────────┘ └─────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Fachada (Facade):</strong> ofrece un acceso sencillo a una parte específica de la funcionalidad del subsistema y coordina el orden de llamadas.</li>
+                        <li><strong>Fachada Adicional (opcional):</strong> evita que una única fachada crezca demasiado mezclando responsabilidades no relacionadas.</li>
+                        <li><strong>Subsistema Complejo:</strong> conjunto de tipos especializados que hacen el trabajo real sin conocer la existencia de la fachada.</li>
+                        <li><strong>Cliente:</strong> invoca únicamente a la fachada en vez de manejar los objetos internos del subsistema.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Cuando necesitas una interfaz simple y directa hacia un subsistema complejo o una biblioteca de terceros con decenas de tipos.</li>
+                        <li>Cuando quieres estructurar un sistema en capas (por ejemplo, fases de un compilador o módulos de negocio) definiendo una fachada como punto de entrada de cada capa.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Identifica qué operaciones de alto nivel necesita realmente el cliente frente al subsistema existente.</li>
+                        <li>Crea la estructura fachada que agrupe las referencias a los componentes del subsistema e inicialice su ciclo de vida.</li>
+                        <li>Haz que el código cliente se comunique con el subsistema solo a través de la fachada; si esta crece demasiado, divídela en fachadas más pequeñas.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Aísla y desacopla el código cliente de la complejidad interna de un subsistema de múltiples piezas.</li>
+                        <li>Facilita actualizar o reemplazar el subsistema interno modificando únicamente la fachada.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Riesgo de que la fachada se convierta en un <strong>objeto todopoderoso (God Object)</strong> acoplado a todas las estructuras de la aplicación.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Facade</strong> define una interfaz nueva y simple para todo un subsistema de objetos, mientras que <strong>Adapter</strong> reutiliza una interfaz existente envolviendo por lo general un solo objeto. A diferencia de <strong>Mediator</strong>, en Facade los objetos del subsistema no conocen a la fachada. <strong>Abstract Factory</strong> puede usarse junto a Facade para ocultar cómo se instancian las piezas del subsistema.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Facade — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Facade">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Facade en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="facade/main.go">package main
+
+import "fmt"
+
+// --- Subsistema Complejo: múltiples tipos con orden de inicialización estricto ---
+
+type ServicioInventario struct{}
+
+func (ServicioInventario) VerificarStock(sku string) bool {
+	fmt.Printf("  1. [Inventario] Verificando disponibilidad de %s -&gt; OK\n", sku)
+	return true
+}
+
+type PasarelaFraude struct{}
+
+func (PasarelaFraude) EvaluarRiesgo(cliente string, monto float64) bool {
+	fmt.Printf("  2. [Antifraude] Analizando operación de %s por $%.2f -&gt; APROBADO\n", cliente, monto)
+	return true
+}
+
+type MotorCobros struct{}
+
+func (MotorCobros) Debitar(cliente string, monto float64) string {
+	fmt.Printf("  3. [Cobros] Debitando $%.2f a %s -&gt; TX-9081\n", monto, cliente)
+	return "TX-9081"
+}
+
+type ServicioLogistica struct{}
+
+func (ServicioLogistica) Despachar(sku, cliente string) string {
+	fmt.Printf("  4. [Logística] Generando guía de envío para %s (%s) -&gt; GUIA-441\n", sku, cliente)
+	return "GUIA-441"
+}
+
+// --- Fachada (Facade): interfaz simplificada de alto nivel para el cliente ---
+
+type FachadaCompra struct {
+	inventario ServicioInventario
+	antifraude PasarelaFraude
+	cobros     MotorCobros
+	logistica  ServicioLogistica
+}
+
+func NuevaFachadaCompra() *FachadaCompra {
+	return &amp;FachadaCompra{}
+}
+
+// ComprarConUnClic coordina todo el subsistema en el orden correcto.
+func (f *FachadaCompra) ComprarConUnClic(cliente, sku string, precio float64) string {
+	fmt.Printf("Iniciando compra rápida: %s adquiere %s\n", cliente, sku)
+	if !f.inventario.VerificarStock(sku) || !f.antifraude.EvaluarRiesgo(cliente, precio) {
+		return "Compra rechazada"
+	}
+	tx := f.cobros.Debitar(cliente, precio)
+	guia := f.logistica.Despachar(sku, cliente)
+	return fmt.Sprintf("Pedido completado (Transacción: %s, Guía: %s)", tx, guia)
+}
+
+func main() {
+	// El cliente solo conoce la Fachada; ignora los 4 subsistemas internos.
+	tienda := NuevaFachadaCompra()
+	resultado := tienda.ComprarConUnClic("Ana Gómez", "LAPTOP-PRO-16", 1299.00)
+	fmt.Println("Resultado:", resultado)
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li>El subsistema consta de 4 servicios independientes (<code>ServicioInventario</code>, <code>PasarelaFraude</code>, <code>MotorCobros</code>, <code>ServicioLogistica</code>).</li>
+                        <li><code>FachadaCompra</code> encapsula las 4 piezas y expone un único método de negocio: <code>ComprarConUnClic</code>.</li>
+                        <li><code>main()</code> realiza la operación completa con una sola llamada sin acoplarse al orden interno del flujo.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">Iniciando compra rápida: Ana Gómez adquiere LAPTOP-PRO-16
+  1. [Inventario] Verificando disponibilidad de LAPTOP-PRO-16 -&gt; OK
+  2. [Antifraude] Analizando operación de Ana Gómez por $1299.00 -&gt; APROBADO
+  3. [Cobros] Debitando $1299.00 a Ana Gómez -&gt; TX-9081
+  4. [Logística] Generando guía de envío para LAPTOP-PRO-16 (Ana Gómez) -&gt; GUIA-441
+Resultado: Pedido completado (Transacción: TX-9081, Guía: GUIA-441)</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En Go, el diseño de paquetes enteros suele aplicar <strong>Facade</strong>: un paquete oculta sus tipos complejos con inicial minúscula (no exportados) y expone funciones o estructuras fachada de alto nivel como <code>http.ListenAndServe</code> o <code>json.Marshal</code>.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/facade" target="_blank">📖 Teoría basada en refactoring.guru — Facade</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 6: FLYWEIGHT
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Flyweight — Teoría -->
+    <div class="slide" id="p-flyweight" data-toc="Flyweight" data-toc-group="Estructurales" data-section="Estructurales · Flyweight">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Flyweight</h2>
+            <p class="slide-subtitle">También llamado: Peso mosca, Peso ligero, Cache</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Flyweight</strong> es un patrón de diseño estructural que permite mantener una enorme cantidad de objetos dentro de la memoria RAM disponible <strong>compartiendo las partes comunes del estado</strong> entre múltiples objetos en lugar de duplicar toda la información en cada uno.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina un videojuego que renderiza cientos de miles de partículas (balas, misiles, metralla) o un bosque con un millón de árboles. Si cada objeto <code>Árbol</code> o <code>Partícula</code> guarda su propia copia de la textura 4K, el modelo 3D y el color además de sus coordenadas <code>(x, y)</code>, la memoria RAM se agota en segundos y el programa colapsa.</p>
+                    <p>Al inspeccionar los objetos, notas que casi todos repiten exactamente las mismas texturas y colores pesados.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Separar el estado de cada objeto en dos mitades:</p>
+                    <ul>
+                        <li><strong>Estado intrínseco (Flyweight):</strong> datos constantes, pesados y repetidos (especie, color, textura/sprite). Se almacenan en un único objeto <strong>inmutable</strong> compartido por miles de instancias.</li>
+                        <li><strong>Estado extrínseco (Contexto):</strong> datos livianos y únicos de cada instancia (coordenadas <code>x, y</code>, velocidad). Se guardan afuera y se pasan por parámetro a los métodos del Flyweight cuando se necesitan.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">🌲</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>En un procesador de textos o libro impreso con 500 000 letras, el programa no guarda 500 000 mapas de bits vectoriales de la fuente tipográfica. Guarda una sola definición geométrica inmutable de la letra <code>'A'</code> (estado intrínseco / <em>flyweight</em>) y en el documento solo anota en qué fila y columna dibujarla (estado extrínseco).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Flyweight — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Flyweight">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Flyweight · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌──────────────────────┐       ┌──────────────────────────┐
+│ ④ Cliente (Bosque)   │──────▶│ ③ FabricaFlyweight       │
+└──────────┬───────────┘       │ - pool: map[clave]*Flyw. │
+           │ contiene miles    │ + Obtener(estadoIntrins.)│
+           ▼                   └─────────────┬────────────┘
+┌──────────────────────┐                     │ reutiliza / crea
+│ ② Contexto (Arbol)   │                     ▼
+│ - x, y (extrínseco)  │       ┌──────────────────────────┐
+│ - tipo: *Flyweight   │──────▶│ ① Flyweight (TipoArbol)  │
+│ + Dibujar()          │ N a 1 │ - especie, color, textura│
+└──────────────────────┘       │   (intrínseco inmutable) │
+                               │ + Dibujar(x, y)          │
+                               └──────────────────────────┘</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Flyweight:</strong> almacena solo el <em>estado intrínseco</em> compartido (debe ser inmutable). Recibe el estado extrínseco por parámetro en sus métodos.</li>
+                        <li><strong>Contexto:</strong> contiene el <em>estado extrínseco</em> único de cada objeto liviano más un puntero al Flyweight compartido.</li>
+                        <li><strong>Fábrica Flyweight:</strong> administra un pool/caché de flyweights existentes; devuelve uno ya creado o lo instancia si aún no existe.</li>
+                        <li><strong>Cliente:</strong> calcula o almacena el estado extrínseco y solicita los flyweights a la fábrica.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad</h3>
+                    <ul>
+                        <li>Úsalo <strong>únicamente</strong> cuando tu programa deba instanciar una cantidad masiva de objetos similares que agoten la RAM disponible, y gran parte de sus campos contengan datos duplicados que puedan extraerse y compartirse.</li>
+                        <li>Muy común en motores gráficos, videojuegos y tablas de internado de cadenas (<em>string interning</em>) en compiladores.</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Divide los campos del objeto en estado <em>intrínseco</em> (inmutable, compartido) y <em>extrínseco</em> (único por instancia).</li>
+                        <li>Deja solo el estado intrínseco en el tipo <em>Flyweight</em> e inicialízalo una sola vez.</li>
+                        <li>Pasa el estado extrínseco como argumentos a los métodos del Flyweight y guárdalo en una estructura <em>Contexto</em>.</li>
+                        <li>Crea una <em>Fábrica Flyweight</em> con un mapa en caché para reutilizar instancias.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Ahorra enormes cantidades de memoria RAM cuando existen miles o millones de objetos similares.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Puede intercambiar ahorro de RAM por ciclos de CPU si el estado extrínseco debe recalcularse en cada llamada.</li>
+                        <li>Aumenta la complejidad del código al separar el estado de una entidad en dos estructuras.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p>Las hojas repetidas de un árbol <strong>Composite</strong> suelen implementarse como <strong>Flyweights</strong> para ahorrar memoria. Mientras <strong>Flyweight</strong> muestra cómo tener muchos objetos pequeños compartidos, <strong>Facade</strong> muestra cómo un solo objeto representa todo un subsistema. A diferencia de <strong>Singleton</strong>, una clase Flyweight tiene múltiples instancias (una por cada estado intrínseco distinto) y sus objetos deben ser <strong>inmutables</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Flyweight — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Flyweight">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Flyweight en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="flyweight/main.go">package main
+
+import "fmt"
+
+// 1. Flyweight (Estado Intrínseco): inmutable y compartido entre miles de instancias.
+type TipoArbol struct {
+	especie string
+	color   string
+	textura string // Simula un recurso pesado en RAM (malla 3D / textura HD)
+}
+
+func (t *TipoArbol) Dibujar(x, y int) {
+	fmt.Printf("  🌳 [%s | %s | %s] en (%d, %d) (ptr=%p)\n",
+		t.especie, t.color, t.textura, x, y, t)
+}
+
+// 2. Fábrica Flyweight: gestiona el pool/caché de objetos compartidos.
+type FabricaTiposArbol struct {
+	tipos map[string]*TipoArbol
+}
+
+func NuevaFabricaTipos() *FabricaTiposArbol {
+	return &amp;FabricaTiposArbol{tipos: make(map[string]*TipoArbol)}
+}
+
+func (f *FabricaTiposArbol) ObtenerTipo(especie, color, textura string) *TipoArbol {
+	clave := especie + "_" + color
+	if tipo, existe := f.tipos[clave]; existe {
+		return tipo // Reutiliza el flyweight existente en memoria
+	}
+	fmt.Printf("➕ Creando nuevo Flyweight en RAM para: %s (%s)\n", especie, color)
+	nuevo := &amp;TipoArbol{especie: especie, color: color, textura: textura}
+	f.tipos[clave] = nuevo
+	return nuevo
+}
+
+// 3. Contexto (Estado Extrínseco): liviano, único para cada árbol del mapa.
+type Arbol struct {
+	x, y int
+	tipo *TipoArbol // Referencia al flyweight compartido
+}
+
+// 4. Cliente / Contenedor: almacena los contextos livianos.
+type Bosque struct {
+	arboles []Arbol
+	fabrica *FabricaTiposArbol
+}
+
+func (b *Bosque) Plantar(x, y int, especie, color, textura string) {
+	tipoCompartido := b.fabrica.ObtenerTipo(especie, color, textura)
+	b.arboles = append(b.arboles, Arbol{x: x, y: y, tipo: tipoCompartido})
+}
+
+func main() {
+	bosque := &amp;Bosque{fabrica: NuevaFabricaTipos()}
+
+	bosque.Plantar(10, 20, "Pino", "Verde Oscuro", "textura_pino_4k.png")
+	bosque.Plantar(15, 25, "Pino", "Verde Oscuro", "textura_pino_4k.png")
+	bosque.Plantar(50, 80, "Cerezo", "Rosa", "textura_cerezo_4k.png")
+	bosque.Plantar(12, 30, "Pino", "Verde Oscuro", "textura_pino_4k.png")
+	bosque.Plantar(55, 85, "Cerezo", "Rosa", "textura_cerezo_4k.png")
+
+	fmt.Printf("\nRenderizando %d árboles usando solo %d objetos TipoArbol en RAM:\n",
+		len(bosque.arboles), len(bosque.fabrica.tipos))
+	for _, a := range bosque.arboles {
+		a.tipo.Dibujar(a.x, a.y)
+	}
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li><code>TipoArbol</code> tiene campos privados (no exportados) para garantizar su <strong>inmutabilidad</strong>.</li>
+                        <li><code>FabricaTiposArbol</code> usa un <code>map[string]*TipoArbol</code>: al plantar 5 árboles de 2 especies, solo reserva memoria para 2 objetos <code>TipoArbol</code>.</li>
+                        <li>Observa en la salida que todos los pinos comparten exactamente la misma dirección de memoria (<code>ptr</code>).</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">➕ Creando nuevo Flyweight en RAM para: Pino (Verde Oscuro)
+➕ Creando nuevo Flyweight en RAM para: Cerezo (Rosa)
+
+Renderizando 5 árboles usando solo 2 objetos TipoArbol en RAM:
+  🌳 [Pino | Verde Oscuro | textura_pino_4k.png] en (10, 20) (ptr=0x15f25f79e120)
+  🌳 [Pino | Verde Oscuro | textura_pino_4k.png] en (15, 25) (ptr=0x15f25f79e120)
+  🌳 [Cerezo | Rosa | textura_cerezo_4k.png] en (50, 80) (ptr=0x15f25f79e180)
+  🌳 [Pino | Verde Oscuro | textura_pino_4k.png] en (12, 30) (ptr=0x15f25f79e120)
+  🌳 [Cerezo | Rosa | textura_cerezo_4k.png] en (55, 85) (ptr=0x15f25f79e180)</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En Go, guarda los contextos livianos por valor en un slice contiguo (<code>[]Arbol</code>) para minimizar la presión sobre el recolector de basura (GC), apuntando con un puntero <code>*TipoArbol</code> al Flyweight. Desde Go 1.23, el paquete estándar <code>unique</code> implementa este patrón de forma nativa (<code>unique.Make(valor)</code>).</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/flyweight" target="_blank">📖 Teoría basada en refactoring.guru — Flyweight</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         PATRÓN ESTRUCTURAL 7: PROXY
+         ===================================================================== -->
+
+    <!-- Slide 1/3: Proxy — Teoría -->
+    <div class="slide" id="p-proxy" data-toc="Proxy" data-toc-group="Estructurales" data-section="Estructurales · Proxy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">1 / 3 · Teoría</span>
+            </div>
+            <h2 class="slide-title">Proxy</h2>
+            <p class="slide-subtitle">También llamado: Representante, Sustituto, Surrogate</p>
+
+            <div class="intent-box">
+                <span class="label">🎯 Propósito</span>
+                <p><strong>Proxy</strong> es un patrón de diseño estructural que proporciona un <strong>sustituto o marcador de posición</strong> para otro objeto. Un proxy controla el acceso al objeto original, permitiéndote ejecutar lógica (seguridad, caché, carga diferida, auditoría) antes o después de que la solicitud llegue al servicio real.</p>
+            </div>
+
+            <div class="two-cols">
+                <div class="glass-card problem-card">
+                    <h3>😟 Problema</h3>
+                    <p>Imagina que tienes un objeto de servicio masivo que consume muchos recursos (una conexión a base de datos, un cliente de almacenamiento remoto S3 o un descargador de video). Lo necesitas ocasionalmente, pero no quieres inicializarlo al arrancar si nadie lo usa, ni repetir consultas idénticas por red, ni permitir que usuarios sin permisos lo invoquen.</p>
+                    <p>Si incrustas esa lógica de inicialización diferida, caché y permisos en cada cliente, duplicarás código por toda la aplicación.</p>
+                </div>
+                <div class="glass-card solution-card">
+                    <h3>💡 Solución</h3>
+                    <p>Crear una estructura <strong>Proxy</strong> que implemente <strong>exactamente la misma interfaz</strong> que el servicio original:</p>
+                    <ul>
+                        <li>El proxy se camufla ante los clientes como si fuera el servicio real.</li>
+                        <li>Intercepta cada petición: verifica permisos, consulta su caché o crea el objeto pesado solo en el instante en que realmente se necesita (<em>lazy initialization</em>), y luego le delega el trabajo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="analogy">
+                <div class="icon">💳</div>
+                <div>
+                    <h3>Analogía en el mundo real</h3>
+                    <p>Una <strong>tarjeta de crédito o débito</strong> es un <em>proxy</em> de una cuenta bancaria, que a su vez es un proxy de un fajo de billetes en efectivo. Ambos implementan la misma interfaz ("realizar un pago"), pero la tarjeta controla el acceso (verifica tu PIN y cupo disponible) antes de descontar el dinero real del banco.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2/3: Proxy — Estructura, aplicabilidad, pros/contras -->
+    <div class="slide" data-section="Estructurales · Proxy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">2 / 3 · Estructura</span>
+            </div>
+            <h2 class="slide-title">Proxy · Estructura y uso</h2>
+
+            <div class="two-cols">
+                <div>
+                    <pre class="uml">┌────────────┐          ┌────────────────────────────┐
+│ ④ Cliente  │─────────▶│     &lt;&lt;interface&gt;&gt;          │
+└────────────┘          │ ① InterfazServicio         │
+                        │ + Operacion(id)            │
+                        └──────△──────────────△──────┘
+                               │              │
+                     implementa│              │implementa
+                  ┌────────────┴───┐    ┌─────┴────────────────┐
+                  │ ③ Proxy        │───▶│ ② ServicioReal       │
+                  │ - real:*Serv.  │    │ + Operacion(id)      │
+                  │ + Operacion(id)│    └──────────────────────┘
+                  └────────────────┘      (delega tras validar)</pre>
+                </div>
+                <div>
+                    <ol class="participants">
+                        <li><strong>Interfaz de Servicio:</strong> declara el contrato común que el Proxy debe seguir para camuflarse como el servicio real.</li>
+                        <li><strong>Servicio Real:</strong> estructura que contiene la lógica de negocio pesada o sensible.</li>
+                        <li><strong>Proxy:</strong> mantiene una referencia al servicio real, gestiona su ciclo de vida y controla el acceso antes/después de delegar.</li>
+                        <li><strong>Cliente:</strong> trabaja tanto con el Servicio Real como con el Proxy de forma transparente a través de la interfaz.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="two-cols mt-1">
+                <div class="glass-card">
+                    <h3>🧭 Aplicabilidad (tipos de Proxy)</h3>
+                    <ul>
+                        <li><strong>Proxy virtual (inicialización diferida):</strong> retrasa la creación de un objeto muy costoso hasta que se usa por primera vez.</li>
+                        <li><strong>Proxy de protección (control de acceso):</strong> valida credenciales o roles antes de pasar la solicitud.</li>
+                        <li><strong>Proxy de caché:</strong> almacena en memoria resultados de operaciones remotas o lentas recurrentes.</li>
+                        <li><strong>Proxy de registro / remoto:</strong> audita llamadas o encapsula comunicación por red (gRPC/HTTP).</li>
+                    </ul>
+                </div>
+                <div class="glass-card">
+                    <h3>🛠️ Cómo implementarlo</h3>
+                    <ol>
+                        <li>Asegúrate de tener una <em>Interfaz de Servicio</em> para que el proxy y el servicio real sean intercambiables.</li>
+                        <li>Crea la estructura <em>Proxy</em> con un campo que apunte al servicio real (a menudo creado por el propio proxy).</li>
+                        <li>Implementa los métodos de la interfaz ejecutando validaciones, caché o <em>lazy init</em> antes de delegar al servicio.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Controla el acceso y el ciclo de vida del objeto de servicio sin que el cliente lo note.</li>
+                        <li><strong>Abierto/Cerrado (OCP):</strong> puedes introducir nuevos proxies sin modificar el servicio ni los clientes.</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>La respuesta del servicio puede experimentar cierta latencia adicional por las validaciones o inicialización diferida.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card mt-1">
+                <h3>🔗 Relación con otros patrones</h3>
+                <p><strong>Proxy</strong> mantiene exactamente la misma interfaz que su servicio; <strong>Adapter</strong> la cambia y <strong>Decorator</strong> la amplía por capas. Aunque <strong>Proxy</strong> y <strong>Decorator</strong> se construyen por composición, un Proxy suele gestionar por su cuenta el ciclo de vida del servicio real (creándolo en diferido), mientras que en Decorator el cliente inyecta y apila explícitamente los objetos.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3/3: Proxy — Implementación en Go -->
+    <div class="slide" data-section="Estructurales · Proxy">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge estructural">🧱 Estructural</span>
+                <span class="part-badge">3 / 3 · Go</span>
+            </div>
+            <h2 class="slide-title">Proxy en Go</h2>
+
+            <div class="two-cols-wide">
+                <pre class="code-block" data-lang="go" data-label="proxy/main.go">package main
+
+import "fmt"
+
+// 1. Interfaz de Servicio: implementada tanto por el Servicio Real como por el Proxy.
+type RepositorioDocumentos interface {
+	ObtenerDocumento(id string, rolUsuario string) string
+}
+
+// 2. Servicio Real: operación costosa (consulta a BD o descarga remota).
+type AlmacenRemotoS3 struct{}
+
+func (a *AlmacenRemotoS3) ObtenerDocumento(id string, _ string) string {
+	fmt.Printf("  🌐 [AlmacenRemotoS3] Descargando '%s' desde el servidor remoto...\n", id)
+	return fmt.Sprintf("Contenido confidencial del archivo [%s]", id)
+}
+
+// 3. Proxy: controla acceso (protección), guarda en caché e inicializa en diferido (virtual).
+type ProxyRepositorio struct {
+	servicioReal *AlmacenRemotoS3 // Se crea solo cuando realmente hace falta (lazy init)
+	cache        map[string]string
+}
+
+func NuevoProxyRepositorio() *ProxyRepositorio {
+	return &amp;ProxyRepositorio{cache: make(map[string]string)}
+}
+
+func (p *ProxyRepositorio) ObtenerDocumento(id string, rolUsuario string) string {
+	fmt.Printf("-&gt; Solicitud de '%s' por rol '%s'\n", id, rolUsuario)
+
+	// a) Proxy de protección: control de acceso
+	if rolUsuario != "admin" &amp;&amp; rolUsuario != "editor" {
+		return "⛔ ACCESO DENEGADO: permisos insuficientes"
+	}
+
+	// b) Proxy de caché: evita descargas repetidas
+	if contenido, ok := p.cache[id]; ok {
+		fmt.Printf("  ⚡ [Proxy Cache] Devolviendo '%s' desde memoria caché\n", id)
+		return contenido
+	}
+
+	// c) Proxy virtual: inicialización diferida del servicio pesado
+	if p.servicioReal == nil {
+		fmt.Println("  🔧 [Proxy Virtual] Inicializando conexión con AlmacenRemotoS3...")
+		p.servicioReal = &amp;AlmacenRemotoS3{}
+	}
+
+	resultado := p.servicioReal.ObtenerDocumento(id, rolUsuario)
+	p.cache[id] = resultado
+	return resultado
+}
+
+func main() {
+	var repo RepositorioDocumentos = NuevoProxyRepositorio()
+
+	fmt.Println("  Resultado:", repo.ObtenerDocumento("nomina_2026.pdf", "invitado"))
+	fmt.Println("  Resultado:", repo.ObtenerDocumento("nomina_2026.pdf", "admin"))
+	fmt.Println("  Resultado:", repo.ObtenerDocumento("nomina_2026.pdf", "editor"))
+}</pre>
+                <div>
+                    <h3>🔍 Paso a paso</h3>
+                    <ol>
+                        <li>En la primera llamada (<code>invitado</code>), el <strong>Proxy de protección</strong> rechaza la petición sin siquiera instanciar <code>AlmacenRemotoS3</code>.</li>
+                        <li>En la segunda llamada (<code>admin</code>), el <strong>Proxy virtual</strong> inicializa el servicio en diferido, descarga el documento y lo guarda en caché.</li>
+                        <li>En la tercera llamada (<code>editor</code>), el <strong>Proxy de caché</strong> responde al instante desde memoria sin tocar la red.</li>
+                    </ol>
+
+                    <h4 class="mt-1">Salida real</h4>
+                    <pre class="output-block">-&gt; Solicitud de 'nomina_2026.pdf' por rol 'invitado'
+  Resultado: ⛔ ACCESO DENEGADO: permisos insuficientes
+-&gt; Solicitud de 'nomina_2026.pdf' por rol 'admin'
+  🔧 [Proxy Virtual] Inicializando conexión con AlmacenRemotoS3...
+  🌐 [AlmacenRemotoS3] Descargando 'nomina_2026.pdf' desde el servidor remoto...
+  Resultado: Contenido confidencial del archivo [nomina_2026.pdf]
+-&gt; Solicitud de 'nomina_2026.pdf' por rol 'editor'
+  ⚡ [Proxy Cache] Devolviendo 'nomina_2026.pdf' desde memoria caché
+  Resultado: Contenido confidencial del archivo [nomina_2026.pdf]</pre>
+
+                    <div class="go-tip">
+                        <div class="icon">🐹</div>
+                        <div>
+                            <h3>Nota idiomática de Go</h3>
+                            <p>En entornos concurrentes en Go, un proxy virtual suele usar <code>sync.Once</code> para inicializar <code>servicioReal</code> de forma segura entre goroutines, y <code>sync.RWMutex</code> para proteger el mapa de caché. Además, <code>httputil.ReverseProxy</code> en la biblioteca estándar es una implementación de producción de este patrón.</p>
+                        </div>
+                    </div>
+
+                    <a class="source-link" href="https://refactoring.guru/es/design-patterns/proxy" target="_blank">📖 Teoría basada en refactoring.guru — Proxy</a>
+                </div>
+            </div>
+        </div>
+    </div>
