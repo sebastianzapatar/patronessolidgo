@@ -1474,6 +1474,54 @@ En pruebas se guardaron 3 facturas</pre>
         </div>
     </div>
 
+    <!-- ===================== PATRONES, ORDEN DEL CÓDIGO Y AHORRO DE TOKENS EN LLMs ===================== -->
+    <div class="slide" id="patrones-llm" data-toc="Patrones y ahorro de tokens (LLMs)" data-toc-group="Patrones de diseño" data-section="Patrones · LLMs y Economía de Tokens">
+        <span class="slide-number-badge"></span>
+        <div class="slide-inner">
+            <div class="pattern-head">
+                <span class="cat-badge solid">🤖 IA Generativa &amp; Ingeniería de Contexto</span>
+                <span class="part-badge">Importante hoy</span>
+            </div>
+            <h2 class="slide-title gradient-2">Patrones, buen orden del código y ahorro de tokens en LLMs</h2>
+            <p class="slide-subtitle">Por qué aplicar SOLID y patrones de diseño reduce drásticamente el consumo de tokens y mejora la precisión al programar con IA</p>
+
+            <div class="intent-box">
+                <span class="label">💡 Idea clave · Ingeniería de Contexto (Context Engineering)</span>
+                <p>En la era de los asistentes de código con IA (Claude, Gemini, Copilot, Cursor), <strong>cada línea de código desordenado cuesta tokens de entrada y salida</strong>. Un código modular basado en <strong>SOLID y patrones de diseño</strong> actúa como un <em>compresor semántico</em> y permite aislar únicamente el contexto necesario.</p>
+            </div>
+
+            <div class="cards-grid-3">
+                <div class="glass-card" style="border-top: 3px solid var(--accent-3);">
+                    <h3 style="color: var(--accent-3);">1 · Compresión semántica del prompt</h3>
+                    <p>Los nombres de los patrones son <strong>atajos de alta densidad semántica</strong>. Decirle a un LLM <em>"aplica un Decorator con interfaz <code>Notificador</code>"</em> reemplaza párrafos enteros explicando cómo envolver structs sin romper el código existente.</p>
+                    <p style="font-size: 0.9rem; color: var(--accent-6);">📉 Menos tokens de instrucción (prompt) y menos iteraciones corrigiendo al modelo.</p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-2);">
+                    <h3 style="color: var(--accent-2);">2 · Aislamiento de contexto (SRP + Paquetes)</h3>
+                    <p>En un archivo monolítico ("God Object" de 1.500 líneas), pedir un cambio obliga a enviar <strong>todo el archivo</strong> en la ventana de contexto. Con <strong>SRP</strong> y paquetes pequeños, solo envías el archivo de 50 líneas que tiene esa responsabilidad.</p>
+                    <p style="font-size: 0.9rem; color: var(--accent-6);">📉 Reducción del <strong>60% al 80%</strong> en tokens de contexto leídos por consulta.</p>
+                </div>
+                <div class="glass-card" style="border-top: 3px solid var(--accent-4);">
+                    <h3 style="color: var(--accent-4);">3 · Contratos en vez de implementaciones (DIP/ISP)</h3>
+                    <p>Gracias a las <strong>interfaces pequeñas de Go</strong>, el LLM no necesita leer cómo funciona tu base de datos ni tu cliente HTTP: basta pasarle una interfaz de 5 líneas (<code>type Repositorio interface</code>) para que genere o pruebe un caso de uso completo.</p>
+                    <p style="font-size: 0.9rem; color: var(--accent-6);">📉 Evita el efecto <em>"Lost in the Middle"</em> y reduce alucinaciones.</p>
+                </div>
+            </div>
+
+            <div class="go-tip mt-1">
+                <div class="icon">📚</div>
+                <div>
+                    <h3>Referencias científicas y de ingeniería que lo respaldan</h3>
+                    <ul>
+                        <li><strong>Anthropic Engineering (2025)</strong> — <a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank"><em>Effective Context Engineering for AI Agents</em></a>: demuestra que la arquitectura modular, archivos cohesivos y carga progresiva de contexto (<em>just-in-time context</em>) evitan saturar la ventana de tokens y mejoran la efectividad de los agentes.</li>
+                        <li><strong>arXiv:2501.04835 (2025)</strong> — <a href="https://arxiv.org/abs/2501.04835" target="_blank"><em>Do Code LLMs Understand Design Patterns?</em></a>: evidencia empírica de que los LLMs de código reconocen y aprovechan los patrones de diseño como abstracciones estructurales, generando código más limpio y predecible cuando el diseño sigue patrones estándar.</li>
+                        <li><strong>Liu et al., Stanford / TACL (2024)</strong> — <a href="https://arxiv.org/abs/2307.03172" target="_blank"><em>Lost in the Middle: How Language Models Use Long Contexts</em> (arXiv:2307.03172)</a>: prueba que enviar archivos gigantes o código espagueti en el contexto degrada significativamente la precisión del modelo además de multiplicar el costo cuadrático de atención.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ===================== DIVISOR: CREACIONALES ===================== -->
     <div class="slide" id="sec-creacionales" data-section="Patrones creacionales">
         <span class="slide-number-badge"></span>
